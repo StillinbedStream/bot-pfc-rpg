@@ -16,7 +16,7 @@ sudo apt-get install git
 
 ### Installer python 3.7.6
 Tu peux installer python via ce site : [python](https://www.python.org/downloads/release/python-376/)
-Pour les utilisateurs avancés sur linux, je conseille l'utilisation de [pyenv linux/mac](https://amaral.northwestern.edu/resources/guides/pyenv-tutorial) ou [anaconda](https://www.anaconda.com/). Tu peux aussi tester avec une autre version de python, mais je ne te garantis pas que le bot fonctionnera.
+Pour les utilisateurs avancés, je conseille l'utilisation de [pyenv linux/mac](https://amaral.northwestern.edu/resources/guides/pyenv-tutorial) ou [anaconda](https://www.anaconda.com/). Tu peux aussi tester avec une autre version de python, mais je ne te garantis pas que le bot fonctionnera.
 
 *Petit tips : (A NE PAS UTILISER SI TU N'INSTALLES PAS PYENV)* Pour utiliser pyenv, n'oublies pas d'installer les pré-requis nécessaires : 
 ```
