@@ -52,8 +52,10 @@ python run-bot.py
 # Tu veux améliorer le bot toi-même ?
 ## Tu es débutant ?
 Si tu es débutant, je te conseille de modifier quelques éléments dans le code et de relancer le bot.
-Essaye de t'imprégner du code et de le comprendre petit petit en modifiant quelques éléments. 
-Aussi, tu peux essayer de créer ton propre bot pour comprendre comme discord.py fonctionne [avec ce lien](https://twitter.com/Still_In_Bed/status/1246761244843020294)
+Essaye de t'imprégner du code et de le comprendre petit à petit en modifiant quelques éléments. 
+
+Aussi, tu peux essayer de créer ton propre bot pour comprendre comment discord.py fonctionne [avec ce lien](https://twitter.com/Still_In_Bed/status/1246761244843020294). 
+
 Si tu as des questions, n'hésite pas à rejoindre le [discord](https://discordapp.com/invite/UE6DSrS) de notre communauté.
 
 ## Accède à la doc discord.py
