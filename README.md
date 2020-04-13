@@ -44,4 +44,5 @@ Si tu es débutant, je te conseille de modifier quelques éléments dans le code
 Tu peux accéder facilement à la documentation de [discord.py](https://discordpy.readthedocs.io/en/latest/). Tu y trouveras ce qu'il te faut pour comprendre le fonction de discord.py et améliorer le code.
 
 
- 
+# Tu veux participer à l'aventure ?
+Tu peux rejoindre l'aventure en participant sur ce github mais aussi en [rejoignant le discord](https://discordapp.com/invite/UE6DSrS) ou en passant sur notre [chaine twitch](twitch.tv/stillinbed).
