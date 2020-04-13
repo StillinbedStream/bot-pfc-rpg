@@ -33,6 +33,16 @@ Il y a quelques dépendances nécessaires. Tu peux facilement les installer en u
 pip install -r requirements.txt
 ```
 
+# Configurer le fichier .env
+Le fichier .env contient l'ensemble des variables d'environnement à initialiser lors du lancement du bot. Vous devez le remplir de la manière suivante : 
+```
+DISCORD_TOKEN=XXXXXXXX
+DISCORD_GUILD=YYYYYYYY
+ID_CHANNEL=XXXXXXX
+```
+PS : Pour le moment, ID_CHANNEL ne sert à rien mais elle sera bientôt utilisée par le bot pour les systèmes d'achievement !
+
+
 ## lancer le bot
 Pour exécuter le bot, rien de plus simple, il suffit d'exécuter la commande suivante :
 ```
