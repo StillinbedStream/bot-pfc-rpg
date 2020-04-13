@@ -17,6 +17,8 @@ sudo apt-get install git
 ### Installer python 3.6.7
 Vous pouvez installer python via ce site : [python](https://www.python.org/downloads/)
 Pour les utilisateurs avancés sur linux, je conseille d'utiliser [pyenv](https://amaral.northwestern.edu/resources/guides/pyenv-tutorial)
+Vous pouvez essayer avec une autre version de python, mais je n'en ai testé qu'une pour le moment.
+
 
 ## git clone
 D'abord, il faut clone le repository sur votre machine. Pour se faire, soit utilisez gitkraken, soit entrez la commande suivante quelque soit votre OS : 
