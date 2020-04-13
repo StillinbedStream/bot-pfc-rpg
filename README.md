@@ -63,7 +63,9 @@ Tu peux accéder facilement à la documentation de [discord.py](https://discordp
 
 
 # Tu veux participer à l'aventure ?
-Tu peux rejoindre l'aventure en participant sur ce github mais aussi en [rejoignant le discord](https://discordapp.com/invite/UE6DSrS) ou en passant sur notre [chaine twitch](twitch.tv/stillinbed).
+Que tu sois programmeur débutant, confirmé ou que tu veuilles juste tester le bot, tu peux rejoindre l'aventure de différentes manières : ou en passant sur notre [chaine twitch](twitch.tv/stillinbed).
+* Rejoins [le discord](https://discordapp.com/invite/UE6DSrS), tu pourras tester le bot et discuter avec nous !
+* Passe faire un coucou sur la [chaine twitch](twitch.tv/stillinbed)
 
 
 # TODO-LIST:
