@@ -43,7 +43,7 @@ Le fichier .env contient l'ensemble des variables d'environnement à initialiser
 ```
 DISCORD_TOKEN=XXXXXXXX
 DISCORD_GUILD=YYYYYYYY
-ID_CHANNEL=XXXXXXX
+ID_CHANNEL=ZZZZZZZZ
 ```
 PS : Pour le moment, ID_CHANNEL ne sert à rien mais elle sera bientôt utilisée par le bot pour les systèmes d'achievement !
 
