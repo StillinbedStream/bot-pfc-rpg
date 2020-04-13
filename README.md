@@ -28,7 +28,10 @@ git clone https://github.com/StillinbedStream/bot-pfc-rpg.git
 Tu es utilisateur Windows et ta console te dit que la commande n'existe pas ? Tu as certainement oublier d'ajouter GIT dans la variable PATH. Cherche sur google comment ajouter la variable PATH.
 
 ## Installer les dépendances
-Il y a quelques dépendances 
+Il y a quelques dépendances nécessaires. Tu peux facilement les installer en utilisant la commande suivante : 
+```
+pip install -r requirements.txt
+```
 
 ## lancer le bot
 Pour exécuter le bot, rien de plus simple, il suffit d'exécuter la commande suivante :
