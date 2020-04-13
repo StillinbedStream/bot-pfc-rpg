@@ -18,7 +18,7 @@ sudo apt-get install git
 Tu peux installer python via ce site : [python](https://www.python.org/downloads/release/python-376/)
 Pour les utilisateurs avancés sur linux, je conseille l'utilisation de [pyenv](https://amaral.northwestern.edu/resources/guides/pyenv-tutorial). Tu peux aussi tester avec une autre version de python, mais je ne te garantis pas que le bot fonctionnera.
 
-*Petit tips : (A NE PAS UTILISER SI TU N'INSTALLES PAS PYENV) * Pour utiliser pyenv, n'oublies pas d'installer les pré-requis nécessaires : 
+*Petit tips : (A NE PAS UTILISER SI TU N'INSTALLES PAS PYENV)* Pour utiliser pyenv, n'oublies pas d'installer les pré-requis nécessaires : 
 ```
 sudo apt-get install build-essential
 ```
