@@ -16,11 +16,18 @@ sudo apt-get install git
 
 ### Installer python 3.7.6
 Tu peux installer python via ce site : [python](https://www.python.org/downloads/release/python-376/)
-Pour les utilisateurs avancés sur linux, je conseille l'utilisation de [pyenv](https://amaral.northwestern.edu/resources/guides/pyenv-tutorial). Tu peux aussi tester avec une autre version de python, mais je ne te garantis pas que le bot fonctionnera.
+Pour les utilisateurs avancés, je conseille l'utilisation de [pyenv linux/mac](https://amaral.northwestern.edu/resources/guides/pyenv-tutorial) ou [anaconda](https://www.anaconda.com/). Tu peux aussi tester avec une autre version de python, mais je ne te garantis pas que le bot fonctionnera.
+
+*Petit tips : (A NE PAS UTILISER SI TU N'INSTALLES PAS PYENV)* Pour utiliser pyenv, n'oublies pas d'installer les pré-requis nécessaires : 
+```
+sudo apt-get install -y make build-essential libssl-dev zlib1g-dev libbz2-dev \
+libreadline-dev libsqlite3-dev wget curl llvm libncurses5-dev libncursesw5-dev \
+xz-utils tk-dev libffi-dev liblzma-dev python-openssl git
+```
 
 
 ## git clone
-D'abord, il faut clone le repository sur ta machine. Pour se faire, tu peux utiliser gitkraken ou entrer la commande suivante quelque soit la version de ton OS :  
+D'abord, il faut cloner le repository sur ta machine. Pour se faire, tu peux utiliser gitkraken ou entrer la commande suivante quelque soit la version de ton OS :  
 ```
 git clone https://github.com/StillinbedStream/bot-pfc-rpg.git
 ```
@@ -38,7 +45,7 @@ Le fichier .env contient l'ensemble des variables d'environnement à initialiser
 ```
 DISCORD_TOKEN=XXXXXXXX
 DISCORD_GUILD=YYYYYYYY
-ID_CHANNEL=XXXXXXX
+ID_CHANNEL=ZZZZZZZZ
 ```
 PS : Pour le moment, ID_CHANNEL ne sert à rien mais elle sera bientôt utilisée par le bot pour les systèmes d'achievement !
 
