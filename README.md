@@ -7,7 +7,7 @@ Un bot discord pour jouer à un pierre-feuille-ciseaux RPG communautaire !
 ## Pré-requis
 
 ### Installer git
-Il faut d'abord installer git sur sa machine. Je vous conseille soit [git-scm](https://git-scm.com/downloads) soit [gitkraken](https://www.gitkraken.com/).
+Il faut d'abord installer git sur sa machine. Je te conseille soit [git-scm](https://git-scm.com/downloads) soit [gitkraken](https://www.gitkraken.com/).
 Pour les utilisateurs de *git-scm sur windows*, pensez bien à ajouter le chemin de git dans la variable PATH, l'installeur vous propose l'option.
 Pour les utilisateurs de linux, vous pouvez utiliser la commande suivante : 
 ```
@@ -15,12 +15,12 @@ sudo apt-get install git
 ```
 
 ### Installer python 3.6.7
-Vous pouvez installer python via ce site : [python](https://www.python.org/downloads/)
-Pour les utilisateurs avancés sur linux, je conseille d'utiliser [pyenv](https://amaral.northwestern.edu/resources/guides/pyenv-tutorial). Vous pouvez essayer avec une autre version de python, mais je n'en ai testé qu'une pour le moment.
+Tu peux installer python via ce site : [python](https://www.python.org/downloads/)
+Pour les utilisateurs avancés sur linux, je conseille d'utiliser [pyenv](https://amaral.northwestern.edu/resources/guides/pyenv-tutorial). Tu peux aussi tester avec une autre version de python, mais je ne te garantis pas que le bot fonctionnera.
 
 
 ## git clone
-D'abord, il faut clone le repository sur votre machine. Pour se faire, soit utilisez gitkraken, soit entrez la commande suivante quelque soit votre OS : 
+D'abord, il faut clone le repository sur ta machine. Pour se faire, tu peux utiliser gitkraken ou entrer la commande suivante quelque soit la version de ton OS :  
 ```
 git clone https://github.com/StillinbedStream/bot-pfc-rpg.git
 ```
