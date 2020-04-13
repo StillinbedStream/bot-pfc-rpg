@@ -20,7 +20,9 @@ Pour les utilisateurs avancés sur linux, je conseille l'utilisation de [pyenv](
 
 *Petit tips : (A NE PAS UTILISER SI TU N'INSTALLES PAS PYENV)* Pour utiliser pyenv, n'oublies pas d'installer les pré-requis nécessaires : 
 ```
-sudo apt-get install build-essential
+sudo apt-get install -y make build-essential libssl-dev zlib1g-dev libbz2-dev \
+libreadline-dev libsqlite3-dev wget curl llvm libncurses5-dev libncursesw5-dev \
+xz-utils tk-dev libffi-dev liblzma-dev python-openssl git
 ```
 
 
