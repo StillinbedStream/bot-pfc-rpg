@@ -131,7 +131,6 @@ class Player(Entity):
         return self.__score
     
 class Fight(Entity):
-
     def __init__(self, idFight, player1, player2):
         '''
             Initialise le combat. Il vérifie aussi que les joueurs ne soient pas
@@ -154,7 +153,6 @@ class Fight(Entity):
         self.__action_player1 = None
         self.__action_player2 = None
     
-
     # idFight
     @property
     def idFight(self):
@@ -164,7 +162,6 @@ class Fight(Entity):
     def idFight(self, id_fight):
         self.__id_fight = id_fight
     
-
     # player1
     @property    
     def player1(self):
@@ -174,7 +171,6 @@ class Fight(Entity):
     def player1(self, player1):
         self.__player1 = player1
 
-    
     # player2
     @property
     def player2(self):
@@ -184,7 +180,6 @@ class Fight(Entity):
     def player2(self, player2):
         self.__player2 = player2
     
-
     # winner
     @property
     def winner(self):
@@ -194,7 +189,6 @@ class Fight(Entity):
     def winner(self, winner):
         self.__winner = winner
     
-
     # actionPlayer1
     @property
     def actionPlayer1(self):
@@ -204,7 +198,6 @@ class Fight(Entity):
     def actionPlayer1(self, action_player1):
         self.__action_player1 = action_player1
     
-
     # actionPlayer2
     @property
     def actionPlayer2(self):
@@ -262,6 +255,7 @@ class DataManager():
         player.idPlayer = id_player
         player.name = name
         self.addPlayer(player)
+        self.dataManager.syncRanking()
     
     def addPlayer(self, player):
         '''
@@ -293,11 +287,6 @@ class DataManager():
         if id_fight in self.__fights_indexed:
             return self.__fights_indexed[id_fight]
         return None
-
-    def setFight(self, fight):
-        if fight.idFight not in self.__fights_indexed:
-            raise Exception("L'identifiant du combat n'existe pas. Il y a peut-être un bug, veuillez contacter l'administrateur.")
-        self.__fights[fight.idFight] = fight
 
     def getFight(self, id_player): 
         '''
@@ -338,7 +327,7 @@ class DataManager():
                 current_fights.append(fight)
         return current_fights
     
-    def findPlayerCurrentFights(self, id_player):
+    def getPlayerCurrentFight(self, id_player):
         '''
             Chercher un combat en cours d'un joueur donné. 
             Il ne peut y en avoir qu'un.

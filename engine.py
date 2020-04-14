@@ -107,29 +107,27 @@ class GameManager:
             await send_direct_message(c_player2, "Vous avez été défié !\npierre, feuille, ou ciseaux ?")
         else:
             await send_direct_message(c_player1, "L'un des deux joueurs est déjà en duel.")
-        
-    async def mystats(self, id_player, channel=None): 
+    
+    async def mystats(self, id_player, channel=None):
         # Récupérer le joueur
         player = self.dataManager.getPlayerById(id_player)
 
         # Vérifier que l'utilisateur existe bien
         if player is None:
-            await send_message(channel, "Vous n'êtes pas encore enregistré. Veuillez vous enregistrer avec !register.")
-            return False
+            raise Exception("Vous n'êtes pas encore enregistré. Veuillez vous enregistrer avec !register.")
         
         # Retourner les stats du joueur
-        score = self.score(player)
-        actif_message = "actif" if player["actif"] else "passif"
-        in_fight_message = "oui" if player["in_fight"] else "non"
+        actif_message = "actif" if player.actif else "passif"
+        in_fight_message = "oui" if player.inFight else "non"
         message = "\n".join([
-            f"Vos stats {player['name']}",
-            f"win : {player['nb_win']}",
-            f"loose : {player['nb_loose']}",
-            f"Wins consécutives : {player['nb_win_cons']}",
-            f"Looses consécutives : {player['nb_loose_cons']}",
-            f"Wins consécutives MAX : {player['nb_win_cons_max']}",
-            f"Looses consécutives MAX: {player['nb_loose_cons_max']}",
-            f"score : {score}",
+            f"Vos stats {player.name}",
+            f"win : {player.nbWin}",
+            f"loose : {player.nbLoose}",
+            f"Wins consécutives : {player.nbWinCons}",
+            f"Looses consécutives : {player.nbLooseCons}",
+            f"Wins consécutives MAX : {player.nbWinConsMax}",
+            f"Looses consécutives MAX: {player.nbLooseConsMax}",
+            f"score : {player.score}",
             f"état du compte : {actif_message}",
             f"en combat? : {in_fight_message}"
         ])
@@ -141,38 +139,35 @@ class GameManager:
         dans son combat.
         '''
         # Chercher son combat
-        fight_index, fight = self.dataManager.getFight(id_player)
+        fight = self.dataManager.getPlayerCurrentFight(id_player)
 
         # Vérifier qu'il y a bien un combat
         if fight is None:
-            await send_message(channel, "Tu n'es pas en combat !")
-            return False
+            raise Exception("Tu n'es pas en combat !")
 
         # Déjà voté ?
-        if (fight["id_player1"] == id_player and fight["action_player1"] is not None) or (fight["id_player2"] == id_player and fight["action_player2"] is not None):
-            await send_message(channel, "Tu as déjà voté !")
-            return False
+        if (fight.player1.idPlayer == id_player and fight.player1.actionPlayer1 is not None) or (fight.player2.idPlayer == id_player and fight.player2.actionPlayer2 is not None):
+            raise Exception("Tu as déjà voté !")
         
         # Match terminé ?
-        if fight["winner"] is not None:
-            await send_message(channel, "Le duel est fini ! ")
-            return False
+        if fight.winner is not None:
+            raise Exception("Le duel est fini !")
         
         # Sinon on peut ajouter l'action
-        if fight["id_player1"] == id_player:
-            fight["action_player1"] = action
+        if fight.player1.idPlayer == id_player:
+            fight.actionPlayer1 = action
         else:
-            fight["action_player2"] = action
+            fight.actionPlayer2 = action
 
         
         # Qui est le joueur 2
-        if id_player == fight["id_player1"]:
-            id_player2 = fight["id_player2"]
+        if id_player == fight.player1.idPlayer:
+            id_player2 = fight.player2.idPlayer
         else:
-            id_player2 = fight["id_player1"]
+            id_player2 = fight.player1.idPlayer
 
         # Créer le DM de Joueur 2
-        c_player2 = None;
+        _player2 = None
         if client is not None:
             c_player2 = client.get_user(id_player2)
         
@@ -185,17 +180,15 @@ class GameManager:
 
             # Cas d'égalité
             if winner_id is None:
-                fight["action_player1"] = None
-                fight["action_player2"] = None
+                fight.actionPlayer1 = None
+                fight.actionPlayer2 = None
                 await send_message(channel, "Il y a eu égalité !\npierre, feuille, ciseaux ?")
                 await send_direct_message(c_player2, "Il y a eu égalité !\npierre, feuille, ciseaux ?")
-                self.dataManager.setFight(fight_index, fight)
                 
             # Cas le combat est fini !
             else:
                 # Update fight
-                fight["winner"] = winner_id
-                self.dataManager.setFight(fight_index, fight)
+                fight.winner = winner_id
 
                 # Get winner and looser
                 if winner_id == id_player:
@@ -206,31 +199,32 @@ class GameManager:
                 # Get players
                 winner_player = self.dataManager.getPlayerById(winner_id)
                 looser_player = self.dataManager.getPlayerById(looser_id)
+
                 # Augmenter les compteurs win et loose
-                winner_player["nb_win"] += 1
-                looser_player["nb_loose"] += 1
+                winner_player.nbWin += 1
+                looser_player.nbLoose += 1
 
                 # Gérer les win et loose consécutives
-                if winner_player["nb_loose_cons"] > 0:
-                    winner_player["nb_win_cons"] = 0
-                    winner_player["nb_loose_cons"] = 0
-                winner_player["nb_win_cons"] += 1
-                if winner_player["nb_win_cons"]  > winner_player["nb_win_cons_max"]:
-                    winner_player["nb_win_cons_max"] = winner_player["nb_win_cons"]
+                if winner_player.nbLooseCons > 0:
+                    winner_player.nbWinCons = 0
+                    winner_player.nbLooseCons = 0
+                winner_player.nbWinCons += 1
+                if winner_player.nbWinCons > winner_player.nbWinConsMax:
+                    winner_player.nbWinConsMax = winner_player.nbWinCons
                 
-                if looser_player["nb_win_cons"] > 0:
-                    looser_player["nb_win_cons"] = 0
-                    looser_player["nb_loose_cons"] = 0
-                looser_player["nb_loose_cons"] += 1
-                if looser_player["nb_loose_cons"]  > looser_player["nb_loose_cons_max"]:
-                    looser_player["nb_loose_cons_max"] = looser_player["nb_loose_cons"]
+                if looser_player.nbWinCons > 0:
+                    looser_player.nbWinCons = 0
+                    looser_player.nbLooseCons = 0
+                looser_player.nbLooseCons += 1
+                if looser_player.nbLooseCons  > looser_player.nbLooseConsMax:
+                    looser_player.nbLooseConsMax = looser_player.nbLooseCons
 
                 self.score(winner_player)
                 self.score(looser_player)
 
                 # On prépare les messages de win et de loose
-                win_message = f"Vous avez vaincu le joueur {looser_player['name']} !"
-                loose_message = f"Vous avez perdu contre le joueur {winner_player['name']} !"
+                win_message = f"Vous avez vaincu le joueur {looser_player.name} !"
+                loose_message = f"Vous avez perdu contre le joueur {winner_player.name} !"
 
                 # Envoyer le message à la bonne personne
                 if winner_id == id_player:
