@@ -258,10 +258,10 @@ class GameManager:
         fights = self.dataManager.getCurrentFights()
         message = "Liste des combats : \n"
         for fight in fights:
-            player1 = self.dataManager.getPlayerById(fight['id_player1'])
-            player2 = self.dataManager.getPlayerById(fight['id_player2'])
+            player1 = self.dataManager.getPlayerById(fight.player1.idPlayer)
+            player2 = self.dataManager.getPlayerById(fight.player2.idPlayer)
 
-            message += f"{player1['name']} versus {player2['name']}\n"
+            message += f"{player1.name} versus {player2.name}\n"
         
         await send_message(channel, message)
             
@@ -274,19 +274,14 @@ class GameManager:
 
         # Est-ce que le joueur existe ? 
         if player is None:
-            await send_message(channel, "Vous n'êtes pas encore enregistré.\nVeuillez écrire !register [nom]")
-            return False
-
+            raise Exception("Vous n'êtes pas encore enregistré.\nVeuillez écrire : ```\n!register [nom]\n```")
+        
         # Est-ce que le joueur est actif ?
-        print(player) 
-        if player["actif"]:
-            print("Devient passif !")
-            player["actif"] = False
-            print(player)
-            self.dataManager.setPlayer(player)
+        if player.actif:
+            player.actif = False
             await send_message(channel, "Tu es bien passé en mode passif ! https://thumbs.gfycat.com/PoliteClearBlackfish-size_restricted.gif")
         else:
-            await send_message(channel, "T'es déjà passif ! https://thumbs.gfycat.com/PoliteClearBlackfish-size_restricted.gif")
+            raise Exception("T'es déjà passif ! https://thumbs.gfycat.com/PoliteClearBlackfish-size_restricted.gif")
 
     async def becomeActif(self, id_joueur, channel=None):
         '''
@@ -297,15 +292,14 @@ class GameManager:
 
         # Est-ce que le joueur existe ? 
         if player is None:
-            send_message(channel, "Vous n'êtes pas encore enregistré.\nVeuillez écrire !register [nom]")
-            return False
+            raise Exception("Vous n'êtes pas encore enregistré.\nVeuillez écrire :\n```\n!register [nom]\n```")
 
         # Est-ce que le joueur est actif ? 
-        if not player["actif"]:
-            player["actif"] = True
+        if not player.actif:
+            player.actif = True
             await send_message(channel, "Tu es bien passé en mode actif ! https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSR5olQJ0iCPut7COcWGoAePC36usg_uE3O8xCYcnp03EPuFz4f9w&s")
         else:
-            await send_message(channel, "T'es déjà actif ! https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSR5olQJ0iCPut7COcWGoAePC36usg_uE3O8xCYcnp03EPuFz4f9w&s")
+            raise Exception("T'es déjà actif ! https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSR5olQJ0iCPut7COcWGoAePC36usg_uE3O8xCYcnp03EPuFz4f9w&s")
 
     async def cancelFight(self, id_player, channel):
         '''
