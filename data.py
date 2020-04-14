@@ -350,14 +350,12 @@ class DataManager():
             self.data = pickle.load(f)
         self.syncRanking()
 
-
     def dumpPickleFile(self, filename):
         '''
             Sauverde self.data dans le fichier pickle.
         '''
         with open(filename, "wb") as f:
             pickle.dump(self.data, f)
-
 
     def syncRanking(self):
         '''
