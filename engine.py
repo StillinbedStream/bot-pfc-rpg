@@ -1,6 +1,7 @@
 from data import DataManager
 import os
 import discord
+import pickle
 
 
 # -- UTILS FUNCTIONS
@@ -11,7 +12,6 @@ async def send_direct_message(player, message):
         if player.dm_channel is None:
             await player.create_dm()
         await player.dm_channel.send(message)
-
 
 async def send_message(channel, message):
     '''
@@ -101,7 +101,7 @@ class GameManager:
                 raise Exception("Il y a eu un bug de communication, ce n'est pas possible d'atteindre le joueur 2.")
         
         # Est-ce que les deux joueurs sont déjà en fight ?
-        created = self.dataManager.createFight(id_joueur1, id_joueur2)
+        created = self.dataManager.createFight(player1, player2)
         if created:
             await send_direct_message(c_player1, "Invitation reçue !\npierre, feuille, ou ciseaux ?")
             await send_direct_message(c_player2, "Vous avez été défié !\npierre, feuille, ou ciseaux ?")
@@ -146,7 +146,7 @@ class GameManager:
             raise Exception("Tu n'es pas en combat !")
 
         # Déjà voté ?
-        if (fight.player1.idPlayer == id_player and fight.player1.actionPlayer1 is not None) or (fight.player2.idPlayer == id_player and fight.player2.actionPlayer2 is not None):
+        if (fight.player1.idPlayer == id_player and fight.actionPlayer1 is not None) or (fight.player2.idPlayer == id_player and fight.actionPlayer2 is not None):
             raise Exception("Tu as déjà voté !")
         
         # Match terminé ?
@@ -218,7 +218,7 @@ class GameManager:
                 looser_player.nbLooseCons += 1
                 if looser_player.nbLooseCons  > looser_player.nbLooseConsMax:
                     looser_player.nbLooseConsMax = looser_player.nbLooseCons
-                
+
 
                 # On prépare les messages de win et de loose
                 win_message = f"Vous avez vaincu le joueur {looser_player.name} !"
@@ -431,15 +431,19 @@ class GameManager:
         Charger les données du jeu
         '''
         if os.path.isfile(self.PICKLE_FILE):
-            print("Chargement des données")
-            self.dataManager.loadPickleFile(self.PICKLE_FILE)
+            with open(self.PICKLE_FILE, "rb") as f:
+                print("Chargement des données")
+                self.__dataManager = pickle.load(f)
+        self.__dataManager.syncRanking()
+        
     
     def save_game(self):
         '''
         Sauvegarde les données du jeu
         '''
         print("sauvegarde des données")
-        self.dataManager.dumpPickleFile(self.PICKLE_FILE)
+        with open(self.PICKLE_FILE, "wb") as f:
+            pickle.dump(self.__dataManager, f)
 
 
 

@@ -12,7 +12,7 @@ class Player(Entity):
     def __init__(self):
         self.__name = ""
         self.__id_player = ""
-        self.__in_fight = ""
+        self.__in_fight = False
 
         self.__nb_win = 0
         self.__nb_win_cons = 0
@@ -113,6 +113,16 @@ class Player(Entity):
     @nbLooseConsMax.setter
     def nbLooseConsMax(self, nb_loose_cons_max):
         self.__nb_loose_cons_max = nb_loose_cons_max
+    
+
+    # actif
+    @property
+    def actif(self):
+        return self.__actif
+    
+    @actif.setter
+    def actif(self, actif):
+        self.__actif = actif
     
 
     # score
@@ -239,7 +249,7 @@ class DataManager():
         Si le joueur n'est pas trouvé, retourne None
         '''
         if id_player in self.__players_indexed:
-            return self.__players_indexed["id_player"]
+            return self.__players_indexed[id_player]
         return None
     
     def getPlayerByName(self, name):
@@ -308,7 +318,6 @@ class DataManager():
         Create the fight and add it to the BDD
         '''
         fight = Fight(self.__id_counter_fights, player1, player2)
-        self.__id_counter_fights += 1
         self.addFight(fight)
         return fight
     
@@ -317,8 +326,8 @@ class DataManager():
             Ajoute un combat, la classe Fight vérifie déjà si les deux joueurs ne sont pas en
             combat. On vérifie aussi que l'identifiant n'existe pas.
         '''
-        if fight.idFight <= len(self.__fights):
-            raise Exception("L'identifiant du combat existe déjà. Veuillez contacter votre administrateur, le boss quoi.")
+        fight.idFight = self.__id_counter_fights
+        self.__id_counter_fights += 1
         self.__fights.append(fight)
     
     def getCurrentFights(self):
@@ -353,22 +362,9 @@ class DataManager():
     def removeFight(self, fight):
         del self.__fights[fight.idFight]
     
-    # - FONCTIONS UTILITAIRES
-    def loadPickleFile(self, filename):
-        '''
-            Charge le fichier pickle dans self.data
-        '''
-        with open(filename, "rb") as f:
-            self.data = pickle.load(f)
-        self.syncRanking()
 
-    def dumpPickleFile(self, filename):
-        '''
-            Sauverde self.data dans le fichier pickle.
-        '''
-        with open(filename, "wb") as f:
-            pickle.dump(self.data, f)
 
+    # Ranking methods
     def syncRanking(self):
         '''
             Synchronise le classement quand c'est demandé pour mettre à jour la 
