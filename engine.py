@@ -29,34 +29,35 @@ class GameManager:
     '''
         Cette classe gère tous les aspects du jeu. Il permet aussi d'envoyer des messages.
     '''
-    dataManager = None
     
 
     PICKLE_FILE = "data.cornichon"
 
     def __init__(self, data = None):
-        self.dataManager = DataManager()
+        self.__dataManager = DataManager()
     
+    @property
+    def dataManager(self):
+        return self.__dataManager
     
+
+
     # Commands
     async def register(self, id_joueur, name, channel=None):
-        print(f"Enregistrer avec {name}")
         '''
         Enregistrer un membre dans le jeu
         '''
         
         # Vérifier que le joueur n'existe pas déjà, soit son ID, soit son name, hein FlutterShy !
-        if self.dataManager.getPlayerById(id_joueur) is not None:
-            await send_message(channel, "T'es déjà enregistré, bouffon !")
-            return False
+        player = self.__dataManager.getPlayerById(id_joueur)
+        if player is not None:
+            raise Exception( f"T'es déjà enregistré sous le nom de {player.name}, bouffon !")
         
-        if self.dataManager.getPlayerByName(name) is not None:
-            await send_message(channel, "Le pseudo est déjà pris, t'es mauvais jack !")
-            return False
+        if self.__dataManager.getPlayerByName(name) is not None:
+            raise Exception(f"Le pseudo {name} est déjà pris, t'es mauvais jack !")
         
-        self.dataManager.addPlayer(id_joueur, name)
+        self.__dataManager.createPlayer(id_joueur, name)
         await send_message(channel, "Enregistrement DONE. Welcome to the trigone ! Que la triforce soit avec toi !")
-        return True
         
     async def attack(self, id_joueur1, id_joueur2, client=None):
         '''

@@ -254,6 +254,15 @@ class DataManager():
             if player.name == name:
                 return player
 
+    def createPlayer(self, id_player, name):
+        '''
+            Crée un player et l'ajoute à la BDD
+        '''
+        player = Player()
+        player.idPlayer = id_player
+        player.name = name
+        self.addPlayer(player)
+    
     def addPlayer(self, player):
         '''
         Permet d'ajouter un utilisateur, vérifie si l'utilisateur existe déjà.
@@ -322,7 +331,7 @@ class DataManager():
                 current_fights.append(fight)
         return current_fights
     
-    def findCurrentFight(self, id_player):
+    def findPlayerCurrentFights(self, id_player):
         '''
             Chercher un combat en cours d'un joueur donné. 
             Il ne peut y en avoir qu'un.
