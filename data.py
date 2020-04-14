@@ -364,4 +364,4 @@ class DataManager():
             Synchronise le classement quand c'est demandé pour mettre à jour la 
             liste des utilisateurs
         '''
-        self.ranking = [v for k, v in sorted(self.data["players"].items(), key=lambda item: item[1]["score"], reverse=True)]
+        self.ranking = [v for k, v in sorted(self.__players, key=lambda item: item.score, reverse=True)]
