@@ -35,21 +35,10 @@ class GameManager:
     PICKLE_FILE = "data.cornichon"
 
     def __init__(self, data = None):
-        print("On a construit GameManager")
         self.dataManager = DataManager()
     
-
-
-    def score(self, player):
-        '''
-        Compute the score of a player
-        '''
-        win = player["nb_win"]
-        loose = player["nb_loose"]
-        score = win * 20 - loose * 5 
-        player["score"] = score
-        return score
     
+    # Commands
     async def register(self, id_joueur, name, channel=None):
         print(f"Enregistrer avec {name}")
         '''
@@ -69,20 +58,6 @@ class GameManager:
         await send_message(channel, "Enregistrement DONE. Welcome to the trigone ! Que la triforce soit avec toi !")
         return True
         
-
-    async def listPlayers(self, channel=None):
-        '''
-        Liste les joueurs enregistrés
-        '''
-        players = self.dataManager.getListNamePlayers()
-        message = "Liste des joueurs : \n"
-        for player in players:
-            message += player + "\n"
-        await send_message(channel, message)
-
-
-
-    # -- FIGHTS
     async def attack(self, id_joueur1, id_joueur2, client=None):
         '''
         Attaquer un joueur
@@ -140,54 +115,33 @@ class GameManager:
             await send_direct_message(c_player1, "L'un des deux joueurs est déjà en duel.")
         return True
         
+    async def mystats(self, id_player, channel=None): 
+        # Récupérer le joueur
+        player = self.dataManager.getPlayerById(id_player)
 
-    def fightIsFinished(self, fight):
-        '''
-            Vérifie si les deux actions ont été remplies et retourne True si le combat est fini, False dans le cas contraire.
-        '''
-        return not (fight["action_player1"] is None or fight["action_player2"] is None)
-    
-
-    def getWinner(self, fight):
-        '''
-            action_1: action du player 1
-            action_2: action du player 2
-
-            return : return None if not ended
-
-                the id of winner
-        '''
-        act1 = fight["action_player1"]
-        act2 = fight["action_player2"]
-        key_idj = fight["id_player1"]
-        key_idj2 = fight["id_player2"]
-        winner = None
-        if act1.lower() == "feuille".lower():
-            if act2.lower() == "feuille".lower():
-                winner = None
-            elif act2.lower() == "ciseaux".lower():
-                winner = key_idj2
-            else:
-                winner = key_idj
+        # Vérifier que l'utilisateur existe bien
+        if player is None:
+            await send_message(channel, "Vous n'êtes pas encore enregistré. Veuillez vous enregistrer avec !register.")
+            return False
         
-        if act1.lower() == "ciseaux".lower():
-            if act2.lower() == "ciseaux".lower():
-                winner = None
-            elif act2.lower() == "pierre".lower():
-                winner = key_idj2
-            else:
-                winner = key_idj
+        # Retourner les stats du joueur
+        score = self.score(player)
+        actif_message = "actif" if player["actif"] else "passif"
+        in_fight_message = "oui" if player["in_fight"] else "non"
+        message = "\n".join([
+            f"Vos stats {player['name']}",
+            f"win : {player['nb_win']}",
+            f"loose : {player['nb_loose']}",
+            f"Wins consécutives : {player['nb_win_cons']}",
+            f"Looses consécutives : {player['nb_loose_cons']}",
+            f"Wins consécutives MAX : {player['nb_win_cons_max']}",
+            f"Looses consécutives MAX: {player['nb_loose_cons_max']}",
+            f"score : {score}",
+            f"état du compte : {actif_message}",
+            f"en combat? : {in_fight_message}"
+        ])
+        await send_message(channel, message)
 
-
-        if act1.lower() == "pierre".lower():
-            if act2.lower() == "pierre".lower():
-                winner = None
-            elif act2.lower() == "feuille".lower():
-                winner = key_idj2
-            else:
-                winner = key_idj
-        return winner
-        
     async def actionPlayer(self, id_player, action, channel=None, client=None):
         '''
         Réaliser l'action 'pierre' 'feuille' ou 'ciseaux' du joueur
@@ -300,6 +254,15 @@ class GameManager:
             await send_message(channel, "Nous avons bien reçu votre action")
         return True
 
+    async def listPlayers(self, channel=None):
+        '''
+        Liste les joueurs enregistrés
+        '''
+        players = self.dataManager.getListNamePlayers()
+        message = "Liste des joueurs : \n"
+        for player in players:
+            message += player + "\n"
+        await send_message(channel, message)
 
     async def listCurrentFights(self, channel=None):
         '''
@@ -315,61 +278,6 @@ class GameManager:
         
         await send_message(channel, message)
             
-    async def mystats(self, id_player, channel=None):
-        
-        # Récupérer le joueur
-        player = self.dataManager.getPlayerById(id_player)
-
-        # Vérifier que l'utilisateur existe bien
-        if player is None:
-            await send_message(channel, "Vous n'êtes pas encore enregistré. Veuillez vous enregistrer avec !register.")
-            return False
-        
-        # Retourner les stats du joueur
-        score = self.score(player)
-        actif_message = "actif" if player["actif"] else "passif"
-        in_fight_message = "oui" if player["in_fight"] else "non"
-        message = "\n".join([
-            f"Vos stats {player['name']}",
-            f"win : {player['nb_win']}",
-            f"loose : {player['nb_loose']}",
-            f"Wins consécutives : {player['nb_win_cons']}",
-            f"Looses consécutives : {player['nb_loose_cons']}",
-            f"Wins consécutives MAX : {player['nb_win_cons_max']}",
-            f"Looses consécutives MAX: {player['nb_loose_cons_max']}",
-            f"score : {score}",
-            f"état du compte : {actif_message}",
-            f"en combat? : {in_fight_message}"
-        ])
-        await send_message(channel, message)
-
-    async def listRanking(self, channel=None):
-        '''
-            Permet à l'utilisateur de faire lister le classement
-        '''
-        message = "Le classement : \n"
-        print(self.dataManager.ranking)
-        for i, player in enumerate(self.dataManager.ranking):
-            message += f"({i}) {player['name']} avec {player['score']} pts\n"
-        await send_message(channel, message)
-    
-    def load_game(self):
-        '''
-        Charger les données du jeu
-        '''
-        if os.path.isfile(self.PICKLE_FILE):
-            print("Chargement des données")
-            self.dataManager.loadPickleFile(self.PICKLE_FILE)
-    
-    def save_game(self):
-        '''
-        Sauvegarde les données du jeu
-        '''
-        print("sauvegarde des données")
-        self.dataManager.dumpPickleFile(self.PICKLE_FILE)
-
-
-    
     async def becomePassif(self, id_joueur, channel=None):
         '''
             Devenir passif pour ne plus être attaqué
@@ -392,8 +300,6 @@ class GameManager:
             await send_message(channel, "Tu es bien passé en mode passif ! https://thumbs.gfycat.com/PoliteClearBlackfish-size_restricted.gif")
         else:
             await send_message(channel, "T'es déjà passif ! https://thumbs.gfycat.com/PoliteClearBlackfish-size_restricted.gif")
-
-
 
     async def becomeActif(self, id_joueur, channel=None):
         '''
@@ -465,7 +371,6 @@ class GameManager:
         await send_message(channel, "Le nom du joueur a bien été modifié")
         return True
 
-
     async def help(self, channel):
 
         message = "\n".join([
@@ -490,6 +395,89 @@ class GameManager:
         ])
 
         await send_message(channel, message)
+
+    async def listRanking(self, channel=None):
+        '''
+            Permet à l'utilisateur de faire lister le classement
+        '''
+        message = "Le classement : \n"
+        print(self.dataManager.ranking)
+        for i, player in enumerate(self.dataManager.ranking):
+            message += f"({i}) {player['name']} avec {player['score']} pts\n"
+        await send_message(channel, message)
+    
+    # Utils
+    def fightIsFinished(self, fight):
+        '''
+            Vérifie si les deux actions ont été remplies et retourne True si le combat est fini, False dans le cas contraire.
+        '''
+        return not (fight["action_player1"] is None or fight["action_player2"] is None)
+    
+    def getWinner(self, fight):
+        '''
+            action_1: action du player 1
+            action_2: action du player 2
+
+            return : return None if not ended
+
+                the id of winner
+        '''
+        act1 = fight["action_player1"]
+        act2 = fight["action_player2"]
+        key_idj = fight["id_player1"]
+        key_idj2 = fight["id_player2"]
+        winner = None
+        if act1.lower() == "feuille".lower():
+            if act2.lower() == "feuille".lower():
+                winner = None
+            elif act2.lower() == "ciseaux".lower():
+                winner = key_idj2
+            else:
+                winner = key_idj
+        
+        if act1.lower() == "ciseaux".lower():
+            if act2.lower() == "ciseaux".lower():
+                winner = None
+            elif act2.lower() == "pierre".lower():
+                winner = key_idj2
+            else:
+                winner = key_idj
+
+
+        if act1.lower() == "pierre".lower():
+            if act2.lower() == "pierre".lower():
+                winner = None
+            elif act2.lower() == "feuille".lower():
+                winner = key_idj2
+            else:
+                winner = key_idj
+        return winner
+        
+    def score(self, player):
+        '''
+        Compute the score of a player
+        '''
+        win = player["nb_win"]
+        loose = player["nb_loose"]
+        score = win * 20 - loose * 5 
+        player["score"] = score
+        return score
+    
+    # Load and save methods
+    def load_game(self):
+        '''
+        Charger les données du jeu
+        '''
+        if os.path.isfile(self.PICKLE_FILE):
+            print("Chargement des données")
+            self.dataManager.loadPickleFile(self.PICKLE_FILE)
+    
+    def save_game(self):
+        '''
+        Sauvegarde les données du jeu
+        '''
+        print("sauvegarde des données")
+        self.dataManager.dumpPickleFile(self.PICKLE_FILE)
 
 
 
