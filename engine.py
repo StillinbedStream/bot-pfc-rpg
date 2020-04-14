@@ -70,42 +70,35 @@ class GameManager:
             c_player1 = client.get_user(id_joueur1)
 
         if c_player1.dm_channel is None:
-            print("ON A UN PROBLEM CHEF!")
-            return False
+            raise Exception("On a un problème chef ! Contact l'administrateur, le chef des chefs.")
 
         # Est-ce que le joueur 1 existe dans BDD ? 
         player1 = self.dataManager.getPlayerById(id_joueur1)
         if player1 is None:
-            await send_direct_message(c_player1, "https://media.giphy.com/media/XZ39zg4naZ1O8/giphy.gif")
-            return False
+            raise Exception("Non trouvé dans la BDD !\nhttps://media.giphy.com/media/XZ39zg4naZ1O8/giphy.gif")
 
         # Est-ce que le joueur 2 existe dans la BDD
         player2 = self.dataManager.getPlayerById(id_joueur2)
         if player2 is None: 
-            await send_direct_message(c_player1, "Joueur 2 non trouvé")
-            return False
+            raise Exception("Le joueur 2 n'existe pas dans notre base de données")
 
         # Est-ce que le joueur 2 est le joueur 1?
-        if player2["id"] == player1["id"]:
-            await send_direct_message(c_player1, "Tu ne peux pas t'attaquer toi-même ! https://i.pinimg.com/originals/50/ab/ee/50abee00257155868ac43c7e9cb64bed.gif")
-            return False
+        if player2.idPlayer == player1.idPlayer:
+            raise Exception("Tu ne peux pas t'attaquer toi-même ! https://i.pinimg.com/originals/50/ab/ee/50abee00257155868ac43c7e9cb64bed.gif")
 
         # Est-ce que joueur 1 est passif ?
-        if player1["actif"] is False:
-            await send_direct_message(c_player1, "Tu es en mode passif espèce de singe ! https://tplmoms.com/wp-content/uploads/2017/05/crottes.gif")
-            return False
+        if player1.actif is False:
+            raise Exception("Tu es en mode passif espèce de singe ! https://tplmoms.com/wp-content/uploads/2017/05/crottes.gif")
         
         # Est-ce que joueur 2 est passif ?
-        if player2["actif"] is False:
-            await send_direct_message(c_player1, "Le joueur que tu as attaqué est en mode 'passif'.")
-            return False
+        if player2.actif is False:
+            raise Exception("Le joueur que tu as attaqué est en mode 'passif'.")
             
         # Est-ce que le player 2 existe dans le discord ?
         if client is not None:
             c_player2 = client.get_user(id_joueur2)
             if c_player2 is None:
-                await send_direct_message(c_player1, "Il y a eu un bug de communication, ce n'est pas possible d'atteindre le joueur.")
-                return False
+                raise Exception("Il y a eu un bug de communication, ce n'est pas possible d'atteindre le joueur 2.")
         
         # Est-ce que les deux joueurs sont déjà en fight ?
         created = self.dataManager.createFight(id_joueur1, id_joueur2)
@@ -114,7 +107,6 @@ class GameManager:
             await send_direct_message(c_player2, "Vous avez été défié !\npierre, feuille, ou ciseaux ?")
         else:
             await send_direct_message(c_player1, "L'un des deux joueurs est déjà en duel.")
-        return True
         
     async def mystats(self, id_player, channel=None): 
         # Récupérer le joueur

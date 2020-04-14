@@ -297,7 +297,7 @@ class DataManager():
     def setFight(self, fight):
         if fight.idFight not in self.__fights_indexed:
             raise Exception("L'identifiant du combat n'existe pas. Il y a peut-être un bug, veuillez contacter l'administrateur.")
-        self.__fights_indexed[fight.idFight] = fight
+        self.__fights[fight.idFight] = fight
 
     def getFight(self, id_player): 
         '''
@@ -310,16 +310,23 @@ class DataManager():
                 return fight
         return None
 
+    def createFight(self, player1, player2):
+        '''
+        Create the fight and add it to the BDD
+        '''
+        fight = Fight(self.__id_counter_fights, player1, player2)
+        self.__id_counter_fights += 1
+        self.addFight(fight)
+        return fight
+    
     def addFight(self, fight):
         '''
             Ajoute un combat, la classe Fight vérifie déjà si les deux joueurs ne sont pas en
-            combat.
-            C'est à ce moment-là que l'identifiant est automatiquement assigné au combat.
+            combat. On vérifie aussi que l'identifiant n'existe pas.
         '''
-        fight.idFight = self.__id_counter_fights
-        self.__id_counter_fights += 1
+        if fight.idFight <= len(self.__fights):
+            raise Exception("L'identifiant du combat existe déjà. Veuillez contacter votre administrateur, le boss quoi.")
         self.__fights.append(fight)
-        self.__fights_indexed[fight.idFight] = fight
     
     def getCurrentFights(self):
         '''
