@@ -310,26 +310,23 @@ class GameManager:
 
         # Vérifier existence du joueur
         if player is None:
-            await send_message(channel, "Il faut d'abord t'enregistrer tête de noeuds !")
+            raise Exception("Il faut d'abord t'enregistrer tête de noeuds !")
         
         # Est-ce qu'il est en combat ?
-        if not player["in_fight"]:
-            await send_message(channel, "Tu n'es pas en combat !")
-            return False
+        if not player.inFight:
+            raise Exception("Tu n'es pas en combat !")
         
         # En combat ? il faut le trouver et le supprimer
-        for i, fight in enumerate(self.dataManager.data["fights"]):
-            if (fight["id_player1"] == id_player or fight["id_player2"] == id_player) and fight["winner"] is None:
-                player1 = self.dataManager.getPlayerById(fight["id_player1"])
-                player2 = self.dataManager.getPlayerById(fight["id_player2"])
-                player1["in_fight"] = False
-                player2["in_fight"] = False
-                del self.dataManager.data["fights"][i]
+        for fight in self.dataManager.fights:
+            if (fight.player1.idPlayer == id_player or fight.player2.idPlayer == id_player) and fight.winner is None:
+                player1 = self.dataManager.getPlayerById(fight.player1.idPlayer)
+                player2 = self.dataManager.getPlayerById(fight.player2.idPlayer)
+                player1.inFight = False
+                player2.inFight = False
+                self.dataManager.removeFight(fight)
                 await send_message(channel, "On a bien supprimé ton combat ! Retourne te battre moussaillon ! https://media.giphy.com/media/ihMKNwb2yPEbWJiAmn/giphy.gif")
-                return True
-        
-        await send_message(channel, "On n'a pas trouvé de combat mais tu peux maintenant attaquer qui tu veux ! https://media.giphy.com/media/ihMKNwb2yPEbWJiAmn/giphy.gif")
-        return False
+                return
+        raise Exception("On n'a pas trouvé de combat mais tu peux maintenant attaquer qui tu veux ! https://media.giphy.com/media/ihMKNwb2yPEbWJiAmn/giphy.gif")
 
     async def changeName(self, name, new_name, channel):
         # Chercher le player avec le nom donné
@@ -337,20 +334,17 @@ class GameManager:
 
         # Est-ce que le joueur existe ?
         if player is None:
-            await send_message(channel, f"Le joueur {name} n'existe pas.")
-            return False
+            raise Exception(f"Le joueur {name} n'existe pas.")
 
         # Est-ce que le nouveau nom n'existe pas déjà ?
         player_new = self.dataManager.getPlayerByName(new_name)
 
         if player_new is not None:
-            await send_message(channel, f"Le pseudo {new_name} existe déjà")
-            return False
+            raise Exception(f"Le pseudo {new_name} existe déjà")
         
         # Modifier son nom
-        player["name"] = new_name
+        player.name = new_name
         await send_message(channel, "Le nom du joueur a bien été modifié")
-        return True
 
     async def help(self, channel):
 
@@ -382,9 +376,8 @@ class GameManager:
             Permet à l'utilisateur de faire lister le classement
         '''
         message = "Le classement : \n"
-        print(self.dataManager.ranking)
         for i, player in enumerate(self.dataManager.ranking):
-            message += f"({i}) {player['name']} avec {player['score']} pts\n"
+            message += f"({i}) {player.name} avec {player.score} pts\n"
         await send_message(channel, message)
     
     # Utils
@@ -392,7 +385,7 @@ class GameManager:
         '''
             Vérifie si les deux actions ont été remplies et retourne True si le combat est fini, False dans le cas contraire.
         '''
-        return not (fight["action_player1"] is None or fight["action_player2"] is None)
+        return not (fight.actionPlayer1 is None or fight.actionPlayer2 is None)
     
     def getWinner(self, fight):
         '''
@@ -403,10 +396,10 @@ class GameManager:
 
                 the id of winner
         '''
-        act1 = fight["action_player1"]
-        act2 = fight["action_player2"]
-        key_idj = fight["id_player1"]
-        key_idj2 = fight["id_player2"]
+        act1 = fight.actionPlayer1
+        act2 = fight.actionPlayer2
+        key_idj = fight.player1.idPlayer
+        key_idj2 = fight.player2.idPlayer
         winner = None
         if act1.lower() == "feuille".lower():
             if act2.lower() == "feuille".lower():
@@ -433,17 +426,7 @@ class GameManager:
             else:
                 winner = key_idj
         return winner
-        
-    def score(self, player):
-        '''
-        Compute the score of a player
-        '''
-        win = player["nb_win"]
-        loose = player["nb_loose"]
-        score = win * 20 - loose * 5 
-        player["score"] = score
-        return score
-    
+
     # Load and save methods
     def load_game(self):
         '''

@@ -22,7 +22,6 @@ class Player(Entity):
         self.__nb_loose_cons = 0
         self.__nb_loose_cons_max = 0
 
-        self.__score = 0
         self.__actif = True
         pass
     
@@ -119,16 +118,12 @@ class Player(Entity):
     # score
     @property
     def score(self):
-        return self.__score
-    
-    @score.setter
-    def score(self, score):
-        self.__score = score
+        return self.nbWin * 20 - self.nbLoose * 5
     
     # exp
     @property
     def exp(self):
-        return self.__score
+        return self.score
     
 class Fight(Entity):
     def __init__(self, idFight, player1, player2):
@@ -227,6 +222,15 @@ class DataManager():
         # Counters
         self.__id_counter_fights = 0
 
+    # Properties
+    @property
+    def fights(self):
+        return self.__fights
+    
+    @property
+    def players(self):
+        return self.__players
+    
 
     # Players methods
     def getPlayerById(self, id_player):
@@ -345,6 +349,9 @@ class DataManager():
         '''
         self.getPlayerById(fight.player1.idPlayer).inFight = False
         self.getPlayerById(fight.player2.idPlayer).inFight = False
+    
+    def removeFight(self, fight):
+        del self.__fights[fight.idFight]
     
     # - FONCTIONS UTILITAIRES
     def loadPickleFile(self, filename):
