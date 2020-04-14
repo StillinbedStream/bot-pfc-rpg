@@ -218,9 +218,7 @@ class GameManager:
                 looser_player.nbLooseCons += 1
                 if looser_player.nbLooseCons  > looser_player.nbLooseConsMax:
                     looser_player.nbLooseConsMax = looser_player.nbLooseCons
-
-                self.score(winner_player)
-                self.score(looser_player)
+                
 
                 # On prépare les messages de win et de loose
                 win_message = f"Vous avez vaincu le joueur {looser_player.name} !"

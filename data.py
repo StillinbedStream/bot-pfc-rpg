@@ -100,8 +100,8 @@ class Player(Entity):
     def nbLooseCons(self):
         return self.__nb_loose_cons
 
-    @nbLooseMax.setter
-    def nbLooseMax(self, nb_loose_cons):
+    @nbLooseCons.setter
+    def nbLooseCons(self, nb_loose_cons):
         self.__nb_loose_cons = nb_loose_cons
     
 
@@ -259,7 +259,7 @@ class DataManager():
         player.idPlayer = id_player
         player.name = name
         self.addPlayer(player)
-        self.dataManager.syncRanking()
+        self.syncRanking()
     
     def addPlayer(self, player):
         '''
@@ -374,4 +374,4 @@ class DataManager():
             Synchronise le classement quand c'est demandé pour mettre à jour la 
             liste des utilisateurs
         '''
-        self.ranking = [v for k, v in sorted(self.__players, key=lambda item: item.score, reverse=True)]
+        self.ranking = [v for k, v in sorted(self.__players_indexed.items(), key=lambda item: item[1].score, reverse=True)]

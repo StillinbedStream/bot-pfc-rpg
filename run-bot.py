@@ -30,7 +30,7 @@ data = {
     }
 }
 
-gameManager.load_game()
+#gameManager.load_game()
 
 
 @client.event
@@ -41,7 +41,7 @@ async def on_ready():
 @client.event
 async def on_disconnect():
     print("Déconnexion du BOT")
-    gameManager.save_game()
+    #gameManager.save_game()
 
 @client.event
 async def on_message(message):
@@ -89,7 +89,7 @@ async def on_message(message):
                 splited = message.content.split(" ")
                 if splited[0] == "!register":
                     if len(splited) > 1:
-                        name = " " .join(splited[1])
+                        name = splited[1]
                         await gameManager.register(message.author.id, name, message.channel)
                     else:
                         await message.channel.send("Il faut écrire !register [mon pseudo] imbécile ! (sans le imbécile, imbécile)")
@@ -106,7 +106,7 @@ async def on_message(message):
                 splited = message.content.split(" ")
                 if splited[0] == "!attack":
                     if len(splited) > 1:
-                        name_player2 = " ".join(splited[1])
+                        name_player2 = splited[1]
                         player2 = gameManager.dataManager.getPlayerByName(name_player2)
                         if player2 == None:
                             await message.channel.send(f"Le joueur {name_player2} n'existe pas, comme ton charisme ! https://gifimage.net/wp-content/uploads/2017/08/popopo-gif-1.gif")
