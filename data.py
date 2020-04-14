@@ -1,76 +1,294 @@
+# TODO: Gérer la synchronisation du classement.
 
 import pickle
 
-# -- DATA MANAGER
-class DataManager:
+# -- Entities
+class Entity:
 
-    data = {}
+    def __init__(self):
+        pass
+
+class Player(Entity):
+    def __init__(self):
+        self.__name = ""
+        self.__id_player = ""
+        self.__in_fight = ""
+
+        self.__nb_win = 0
+        self.__nb_win_cons = 0
+        self.__nb_win_cons_max = 0
+
+        self.__nb_loose = 0
+        self.__nb_loose_cons = 0
+        self.__nb_loose_cons_max = 0
+
+        self.__score = 0
+        self.__actif = True
+        pass
+    
+    # name
+    @property
+    def name(self):
+        return self.__name
+    
+    @name.setter
+    def name(self, name):
+        self.__name = name
+    
+
+    # idPlayer
+    @property
+    def idPlayer(self):
+        return self.__id_player
+    
+    @idPlayer.setter
+    def idPlayer(self, id_player):
+        self.__id_player = id_player
+    
+
+    # inFight
+    @property
+    def inFight(self):
+        return self.__in_fight
+    
+    @inFight.setter
+    def inFight(self, in_fight):
+        self.__in_fight = in_fight
+    
+
+    # nbWin
+    @property
+    def nbWin(self):
+        return self.__nb_win
+    
+    @nbWin.setter
+    def nbWin(self, nb_win):
+        self.__nb_win = nb_win
+    
+
+    # nbWinCons
+    @property
+    def nbWinCons(self):
+        return self.__nb_win_cons
+    
+    @nbWinCons.setter
+    def nbWinCons(self, nb_win_cons):
+        self.__nb_win_cons = nb_win_cons
+    
+
+    # nbWinConsMax
+    @property
+    def nbWinConsMax(self, nb_win_cons_max):
+        return self.__nb_win_cons_max
+    
+    @nbWinConsMax.setter
+    def nbWinConsMax(self,nb_win_cons_max):
+        self.__nb_win_cons_max = nb_win_cons_max
+
+
+    # nbLoose
+    @property
+    def nbLoose(self):
+        return self.__nb_loose
+    
+    @nbLoose.setter
+    def nbLoose(self, nb_loose):
+        self.__nb_loose = nb_loose
+
+
+    # nbLooseCons
+    @property
+    def nbLooseCons(self):
+        return self.__nb_loose_cons
+
+    @nbLooseMax.setter
+    def nbLooseMax(self, nb_loose_cons):
+        self.__nb_loose_cons = nb_loose_cons
+    
+
+    # nbLooseConsMax
+    @property
+    def nbLooseConsMax(self):
+        return self.__nb_loose_cons_max
+    
+    @nbLooseConsMax.setter
+    def nbLooseConsMax(self, nb_loose_cons_max):
+        self.__nb_loose_cons_max = nb_loose_cons_max
+    
+
+    # score
+    @property
+    def score(self):
+        return self.__score
+    
+    @score.setter
+    def score(self, score):
+        self.__score = score
+    
+    # exp
+    @property
+    def exp(self):
+        return self.__score
+    
+class Fight(Entity):
+
+    def __init__(self, idFight, player1, player2):
+        '''
+            Initialise le combat. Il vérifie aussi que les joueurs ne soient pas
+            déjà en combat via la propriété inFight.
+        '''
+        # Vérifie si le player 1 et 2 sont en combat
+        if player1.inFight == True:
+            raise Exception(f"Le joueur {player1.name} est déjà en combat.")
+
+        if player2.inFight == True:
+            raise Exception(f"Le joueur {player2.name} est déjà en combat.")
+
+        player1.inFight = True
+        player2.inFight = True
+
+        self.__id_fight = idFight
+        self.__player1 = player1
+        self.__player2 = player2
+        self.__winner = None
+        self.__action_player1 = None
+        self.__action_player2 = None
+    
+
+    # idFight
+    @property
+    def idFight(self):
+        return self.__id_fight
+    
+    @idFight.setter
+    def idFight(self, id_fight):
+        self.__id_fight = id_fight
+    
+
+    # player1
+    @property    
+    def player1(self):
+        return self.__player1
+    
+    @player1.setter
+    def player1(self, player1):
+        self.__player1 = player1
+
+    
+    # player2
+    @property
+    def player2(self):
+        return self.__player2
+    
+    @player2.setter
+    def player2(self, player2):
+        self.__player2 = player2
+    
+
+    # winner
+    @property
+    def winner(self):
+        return self.__winner
+    
+    @winner.setter
+    def winner(self, winner):
+        self.__winner = winner
+    
+
+    # actionPlayer1
+    @property
+    def actionPlayer1(self):
+        return self.__action_player1
+    
+    @actionPlayer1.setter
+    def actionPlayer1(self, action_player1):
+        self.__action_player1 = action_player1
+    
+
+    # actionPlayer2
+    @property
+    def actionPlayer2(self):
+        return self.__action_player2
+    
+    @actionPlayer2.setter
+    def actionPlayer2(self, action_player2):
+        self.__action_player2 = action_player2
+
+# -- DATA MANAGER
+class DataManager():
+
     ranking = {}
 
     def __init__(self):
-        self.data = {
-            "players": {},
-            "fights": [],
-            "ids": {
-                "fights": 0
-            }
-        }
-    
+        '''
+            _indexed sont des dictionnaires où les éléments sont indexés par identifiants are dictionary where elements are indexed by id.
+            _ind_[property] sont des dictionnaires où la clef est la propriété précisée
+        '''
+        self.__players = []
+        self.__players_indexed = {}
+        self.__players_ind_name = {}
 
-    # - FONCTIONS MODELE PLAYER
-    def getPlayerById(self, id):
+        self.__fights = []
+        self.__fights_indexed = {}
+
+        # Counters
+        self.__id_counter_fights = 0
+
+
+    # Players methods
+    def getPlayerById(self, id_player):
         '''
         Retourne le joueur trouvé à l'identifiant donné.
         Si le joueur n'est pas trouvé, retourne None
         '''
-        if id in self.data["players"]:
-            player = self.data["players"][id]
-            if not "actif" in player:
-                player["actif"] = True
-            if not "nb_loose_cons_max" in player:
-                player["nb_loose_cons_max"] = 0
-            if not "nb_win_cons_max" in player:
-                player["nb_win_cons_max"] = 0
-            return player
-        else:
-            return None
+        if id_player in self.__players_indexed:
+            return self.__players_indexed["id_player"]
+        return None
     
     def getPlayerByName(self, name):
         '''
         Retourne le joueur trouvé au nom donné.
         Si le joueur n'est pas trouvé, retourne None
         '''
-        for _, player in self.data["players"].items():
-            if player["name"] == name:
+        for player in self.__players:
+            if player.name == name:
                 return player
-        return None
 
-    def setPlayer(self, player):
+    def addPlayer(self, player):
         '''
+        Permet d'ajouter un utilisateur, vérifie si l'utilisateur existe déjà.
         '''
-        self.data["players"][player["id"]] = player
+        # Vérifier que le joueur existe pas déjà
+        if player.idPlayer in self.__players:
+            raise Exception("Le joueur ne peut pas être ajouté, son id existe déjà.")
+        
+        # Vérifier que le nom du joueur n'est pas déjà prix
+        if player.name in self.__players_ind_name:
+            raise Exception("Le joueur ne peut pas être ajouté, son nom existe déjà")
+        
+        # Ajouter le joueur dans le tableau et dans les index
+        self.__players.append(player)
+        self.__players_indexed[player.idPlayer] = player
+        self.__players_ind_name[player.name] = player
     
-    def addPlayer(self, id_, name_):
-        '''
-            Ajoute un joueur à la BDD s'il n'existe pas déjà
-            Retourne True si le joueur a bien été ajouté
-            Retourne False dans le cas contraire
-        '''
-        if id in self.data["players"]:
-            return False
-        else:
-            self.data["players"][id_] = {"name": name_, "id": id_, "in_fight": None, "nb_win": 0, "nb_loose": 0, "nb_loose_cons": 0, "nb_win_cons": 0, "score": 0, "actif": True, "nb_loose_cons_max" : 0, "nb_win_cons_max": 0}
-            self.syncRanking()
-            return True
-
     def getListNamePlayers(self):
         '''
             Retourne une liste avec les noms de tous les joueurs
         '''
-        return [player["name"] for _, player in self.data["players"].items()]
+        return [player.name for _, player in self.__players_indexed.items()]
 
-    def setFight(self, fight_index, fight):
-        self.data["fights"][fight_index] = fight
+
+
+    # Fights methods
+    def getFightById(self, id_fight):
+        if id_fight in self.__fights_indexed:
+            return self.__fights_indexed[id_fight]
+        return None
+
+    def setFight(self, fight):
+        if fight.idFight not in self.__fights_indexed:
+            raise Exception("L'identifiant du combat n'existe pas. Il y a peut-être un bug, veuillez contacter l'administrateur.")
+        self.__fights_indexed[fight.idFight] = fight
 
     def getFight(self, id_player): 
         '''
@@ -78,76 +296,51 @@ class DataManager:
             Return False dans le cas contraire.
         '''
 
-        for i, fight in enumerate(self.data["fights"]):
-            if (fight["id_player1"] == id_player or fight["id_player2"] == id_player) and fight["winner"] is None:
-                return i, fight
-        return None            
+        for fight in self.data["fights"]:
+            if (fight.player1.idPlayer == id_player or fight.player2.idPlayer == id_player) and fight.winner is None:
+                return fight
+        return None
 
-
-    def isInFight(self, id_player):
+    def addFight(self, fight):
         '''
-            Retourne True si le joueur est en combat.
-            Return False dans le cas contraire.
+            Ajoute un combat, la classe Fight vérifie déjà si les deux joueurs ne sont pas en
+            combat.
+            C'est à ce moment-là que l'identifiant est automatiquement assigné au combat.
         '''
-        if not id_player in self.data["players"]:
-            return None
-        else:
-            return self.data["players"][id_player]["in_fight"] == True
-
-    # - FONCTIONS MODELE COMBAT
-    def createFight(self, id_player1, id_player2):
-        # Vérifier que les deux utilisateurs ne sont pas déjà en combat
-        if self.isInFight(id_player1):
-            return False
-        
-        if self.isInFight(id_player2):
-            return False
-        
-        # Ajouter le combat
-        self.data["fights"].append({
-            "id": self.data["ids"]["fights"],
-            "id_player1": id_player1,
-            "id_player2": id_player2,
-            "winner": None,
-            "action_player1": None,
-            "action_player2": None,
-            "waiting": id_player2
-        })
-
-        self.data["players"][id_player1]["in_fight"] = True
-        self.data["players"][id_player2]["in_fight"] = True
-        return True
+        fight.idFight = self.__id_counter_fights
+        self.__id_counter_fights += 1
+        self.__fights.append(fight)
+        self.__fights_indexed[fight.idFight] = fight
     
     def getCurrentFights(self):
         '''
         Récupérer les combats qui ne sont pas finis (dont sans gagnant)
         '''
         current_fights = []
-        for fight in self.data["fights"]:
-            if fight["winner"] == None:
+        for fight in self.__fights:
+            if fight.winner == None:
                 current_fights.append(fight)
         return current_fights
     
-
-    def findCurrentFight(self, id_joueur):
+    def findCurrentFight(self, id_player):
         '''
             Chercher un combat en cours d'un joueur donné. 
             Il ne peut y en avoir qu'un.
             Retourne None si non trouvé
         '''
-        for fight in self.data["fight"]:
-            if fight["id_player1"] == id_joueur and fight["winner"] is None:
-                return True
-        return False
+        for fight in self.__fights:
+            if fight.player1.idPlayer == id_player or fight.player2.idPlayer == id_player:
+                return fight
+        return None
     
     def endFight(self, fight):
         '''
             Réalise toutes les actions de synchronise en fin de combat
             comme mettre à jour les variables in_fight de chaque joueur.
         '''
-        self.data["players"][fight["id_player1"]]["in_fight"] = False
-        self.data["players"][fight["id_player2"]]["in_fight"] = False
-            
+        self.getPlayerById(fight.player1.idPlayer).inFight = False
+        self.getPlayerById(fight.player2.idPlayer).inFight = False
+    
     # - FONCTIONS UTILITAIRES
     def loadPickleFile(self, filename):
         '''
