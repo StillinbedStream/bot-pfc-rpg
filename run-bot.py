@@ -132,8 +132,13 @@ async def on_message(message):
                 if message.content == "!cancel":
                     await gameManager.cancelFight(message.author.id, message.channel)
                 
+                # Montrer les actifs
                 if message.content == "!show-actifs":
                     await gameManager.showActifs(message.channel)
+
+                if message.content == "!show-availables":
+                    await gameManager.showAvailables(message.channel)
+                
                 # Message d'aide
                 if message.content == "!help":
                     await gameManager.help(message.channel)

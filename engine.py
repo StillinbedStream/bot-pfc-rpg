@@ -344,6 +344,7 @@ class GameManager:
             "`!register [pseudo]` : s'enregistrer avec le pseudo donné",
             "`!players` : liste les noms des joueurs",
             "`!show-actifs` : Liste tous les joueurs actifs",
+            "`!show-availables` : Liste les joueurs que l'on peut attaquer",
             "`!attack [pseudo du joueur]` : attaquer le joueur avec le pseudo donné",
             "`!mystats` : voir mes statistiques",
             "`!current-fights` : liste les combats en cours",
@@ -379,6 +380,13 @@ class GameManager:
         message = "Liste des joueurs actifs \n"
         for player in self.dataManager.players:
             if player.actif:
+                message += f"{player.name} :v:\n"
+        await utils.send_message(channel, message)
+
+    async def showAvailables(self, channel=None):
+        message = "Liste des joueurs actifs \n"
+        for player in self.dataManager.players:
+            if player.actif and not player.inFight:
                 message += f"{player.name} :v:\n"
         await utils.send_message(channel, message)
 

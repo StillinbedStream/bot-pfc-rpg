@@ -136,7 +136,6 @@ class Player(Entity):
     def exp(self):
         return self.score
     
-
 class Fight(Entity):
     def __init__(self, idFight, player1, player2):
         '''
@@ -148,10 +147,10 @@ class Fight(Entity):
         print("Player2: ", player2.inFight)
         print("Player1: ", player1.name)
         print("Player2: ", player2.name)
-        if player1.inFight == True:
+        if player1.inFight:
             raise exceptions.PlayerInFight()
 
-        if player2.inFight == True:
+        if player2.inFight:
             raise exceptions.Player2InFight(player2)
 
         player1.inFight = True
@@ -408,7 +407,7 @@ class DataManager():
             comme mettre à jour les variables in_fight de chaque joueur.
         '''
         fight.player1.inFight = False
-        fight.player1.inFight = False
+        fight.player2.inFight = False
     
     # Ranking methods
     def syncRanking(self):
