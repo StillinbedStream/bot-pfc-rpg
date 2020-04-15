@@ -39,7 +39,7 @@ class GameManager:
             raise exceptions.NameExists(name)
 
         self.__dataManager.createPlayer(id_joueur, name)
-        await send_message(channel, "Enregistrement DONE. Welcome to the trigone ! Que la triforce soit avec toi !")
+        await utils.send_message(channel, "Enregistrement DONE. Welcome to the trigone ! Que la triforce soit avec toi !")
         
     async def attack(self, id_joueur1, id_joueur2, client=None):
         '''
@@ -118,14 +118,19 @@ class GameManager:
         dans son combat.
         '''
         # Chercher son combat
-        fight = self.dataManager.getPlayerCurrentFight(id_player)
+        player = self.dataManager.getPlayerById(id_player)
+        
+        if player is None:
+            raise exceptions.PlayerNotRegistered()
+        
+        fight = self.dataManager.getPlayerCurrentFight(player)
 
         # Vérifier qu'il y a bien un combat
         if fight is None:
             raise exceptions.PlayerNotInFight()
 
         # Déjà voté ?
-        if (fight.player1.idPlayer == id_player and fight.actionPlayer1 is not None) or (fight.player2.idPlayer == id_player and fight.actionPlayer2 is not None):
+        if fight.alreadyVote(player):
             raise exceptions.AlreadyVote()
         
         # Match terminé ?
@@ -338,6 +343,7 @@ class GameManager:
             "`!help` : message d'aide avec la liste des commandes",
             "`!register [pseudo]` : s'enregistrer avec le pseudo donné",
             "`!players` : liste les noms des joueurs",
+            "`!show-actifs` : Liste tous les joueurs actifs",
             "`!attack [pseudo du joueur]` : attaquer le joueur avec le pseudo donné",
             "`!mystats` : voir mes statistiques",
             "`!current-fights` : liste les combats en cours",
@@ -369,6 +375,13 @@ class GameManager:
         await channel.send("Les combats sont bien réinitialisés !")
         print("Fights init done !")
     
+    async def showActifs(self, channel=None):
+        message = "Liste des joueurs actifs \n"
+        for player in self.dataManager.players:
+            if player.actif:
+                message += f"{player.name} :v:\n"
+        await utils.send_message(channel, message)
+
     # Utils
     def fightIsFinished(self, fight):
         '''

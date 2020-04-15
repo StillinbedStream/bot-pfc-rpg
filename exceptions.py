@@ -73,7 +73,7 @@ class Player2Passif(ExceptionToUser):
 class PlayerAlreadyRegistered(ExceptionToUser):
     def __init__(self, player):
         self.stringOutput = "Le joueur est déjà enregistré"
-        self.messageToUser = Message(None, "T'es déjà enregistré sous le nom de {player.name}, bouffon !")
+        self.messageToUser = Message(None, f"T'es déjà enregistré sous le nom de {player.name}, bouffon !")
 
 class NameExists(ExceptionToUser):
     def __init__(self, name):
@@ -121,9 +121,7 @@ class DuelAlreadyFinished(ExceptionToUser):
         self.stringOutput = "Le duel est fini !"
         self.messageToUser = Message(None, "Le duel est fini !")
 
-
 class BugDiscordCommunication(ExceptionToUser):
     def __init__(self):
         self.stringOutput = "Il y a eu un bug de communication, ce n'est pas possible d'atteindre le joueur 2."
         self.messageToUser = Message(None, "Il y a eu un bug, ce n'est pas possible d'atteindre le joueur 2. Contacte l'admin stp. Tu sais, le big boss.")
-

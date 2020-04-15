@@ -136,6 +136,7 @@ class Player(Entity):
     def exp(self):
         return self.score
     
+
 class Fight(Entity):
     def __init__(self, idFight, player1, player2):
         '''
@@ -240,10 +241,17 @@ class Fight(Entity):
         '''
             Vérifie si le joueur est en train de combattre
         '''
-        if self.isInvolved(player) and (not self.cancel) and (self.winner is not None):
+        if self.isInvolved(player) and self.isCurrent():
             return True
         return False
     
+    def isCurrent(self):
+        return self.winner is None and not self.cancel
+        
+    def alreadyVote(self, player):
+        return (self.player1.idPlayer == player.idPlayer and self.actionPlayer1 is not None) or (self.player2.idPlayer == player.idPlayer and self.actionPlayer2 is not None)
+
+
 # -- DATA MANAGER
 class DataManager():
 
@@ -379,18 +387,18 @@ class DataManager():
         '''
         current_fights = []
         for fight in self.__fights:
-            if fight.winner == None:
+            if fight.isCurrent():
                 current_fights.append(fight)
         return current_fights
     
-    def getPlayerCurrentFight(self, id_player):
+    def getPlayerCurrentFight(self, player):
         '''
             Chercher un combat en cours d'un joueur donné. 
             Il ne peut y en avoir qu'un.
             Retourne None si non trouvé
         '''
         for fight in self.__fights:
-            if fight.player1.idPlayer == id_player or fight.player2.idPlayer == id_player:
+            if fight.isFighting(player):
                 return fight
         return None
     
