@@ -295,14 +295,13 @@ class GameManager:
         # En combat ? il faut le trouver et le supprimer
         for fight in self.dataManager.fights:
             if (fight.player1.idPlayer == id_player or fight.player2.idPlayer == id_player) and fight.winner is None:
-                player1 = self.dataManager.getPlayerById(fight.player1.idPlayer)
-                player2 = self.dataManager.getPlayerById(fight.player2.idPlayer)
-                player1.inFight = False
-                player2.inFight = False
+                fight.player1.inFight = False
+                fight.player2.inFight = False
                 self.dataManager.removeFight(fight)
                 await utils.send_message(channel, "On a bien supprimé ton combat ! Retourne te battre moussaillon ! https://media.giphy.com/media/ihMKNwb2yPEbWJiAmn/giphy.gif")
                 return
-        raise utils.send_message(channel, "On n'a pas trouvé de combat mais tu peux maintenant attaquer qui tu veux ! https://media.giphy.com/media/ihMKNwb2yPEbWJiAmn/giphy.gif")
+        player.inFight = False
+        await utils.send_message(channel, "On n'a pas trouvé de combat mais tu peux maintenant attaquer qui tu veux ! https://media.giphy.com/media/ihMKNwb2yPEbWJiAmn/giphy.gif")
 
     async def changeName(self, name, new_name, channel):
         # Chercher le player avec le nom donné
@@ -355,6 +354,15 @@ class GameManager:
         for i, player in enumerate(self.dataManager.ranking):
             message += f"({i}) {player.name} avec {player.score} pts\n"
         await utils.send_message(channel, message)
+
+    async def initFights(self, channel=None):
+        # Cancel fights
+        self.dataManager.fights = []
+        
+        for key, player in self.dataManager.playersIndexed.items():
+            player.inFight = False
+        await channel.send("Les combats sont bien réinitialisés !")
+        print("Fights init done !")
     
     # Utils
     def fightIsFinished(self, fight):

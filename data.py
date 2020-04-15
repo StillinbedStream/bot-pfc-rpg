@@ -1,6 +1,7 @@
 # TODO: Gérer la synchronisation du classement.
 
 import pickle
+import exceptions
 
 # -- Entities
 class Entity:
@@ -77,11 +78,11 @@ class Player(Entity):
 
     # nbWinConsMax
     @property
-    def nbWinConsMax(self, nb_win_cons_max):
+    def nbWinConsMax(self):
         return self.__nb_win_cons_max
     
     @nbWinConsMax.setter
-    def nbWinConsMax(self,nb_win_cons_max):
+    def nbWinConsMax(self, nb_win_cons_max):
         self.__nb_win_cons_max = nb_win_cons_max
 
 
@@ -142,11 +143,15 @@ class Fight(Entity):
             déjà en combat via la propriété inFight.
         '''
         # Vérifie si le player 1 et 2 sont en combat
+        print("Player1: ", player1.inFight)
+        print("Player2: ", player2.inFight)
+        print("Player1: ", player1.name)
+        print("Player2: ", player2.name)
         if player1.inFight == True:
-            raise Exception(f"Le joueur {player1.name} est déjà en combat.")
+            raise exceptions.PlayerInFight()
 
         if player2.inFight == True:
-            raise Exception(f"Le joueur {player2.name} est déjà en combat.")
+            raise exceptions.Player2InFight(player2)
 
         player1.inFight = True
         player2.inFight = True
@@ -237,9 +242,20 @@ class DataManager():
     def fights(self):
         return self.__fights
     
+    @fights.setter
+    def fights(self, fights):
+        self.__fights = fights
+        self.__fights_indexed = {}
+        for fight in self.fights:
+            self.__fights_indexed[fight.idFight] = fight
+
     @property
     def players(self):
         return self.__players
+    
+    @property
+    def playersIndexed(self):
+        return self.__players_indexed
     
 
     # Players methods
@@ -277,11 +293,11 @@ class DataManager():
         '''
         # Vérifier que le joueur existe pas déjà
         if player.idPlayer in self.__players:
-            raise Exception("Le joueur ne peut pas être ajouté, son id existe déjà.")
+            raise  exceptions.PlayerAlreadyRegistered(player)
         
         # Vérifier que le nom du joueur n'est pas déjà prix
         if player.name in self.__players_ind_name:
-            raise Exception("Le joueur ne peut pas être ajouté, son nom existe déjà")
+            raise exceptions.NameExists(player.name)
         
         # Ajouter le joueur dans le tableau et dans les index
         self.__players.append(player)
@@ -308,7 +324,7 @@ class DataManager():
             Return False dans le cas contraire.
         '''
 
-        for fight in self.data["fights"]:
+        for fight in self.__fights:
             if (fight.player1.idPlayer == id_player or fight.player2.idPlayer == id_player) and fight.winner is None:
                 return fight
         return None
@@ -356,14 +372,9 @@ class DataManager():
             Réalise toutes les actions de synchronise en fin de combat
             comme mettre à jour les variables in_fight de chaque joueur.
         '''
-        self.getPlayerById(fight.player1.idPlayer).inFight = False
-        self.getPlayerById(fight.player2.idPlayer).inFight = False
+        fight.player1.inFight = False
+        fight.player1.inFight = False
     
-    def removeFight(self, fight):
-        del self.__fights[fight.idFight]
-    
-
-
     # Ranking methods
     def syncRanking(self):
         '''

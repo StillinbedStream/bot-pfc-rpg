@@ -3,6 +3,7 @@ import os
 import random
 import discord
 import asyncio 
+import exceptions
 
 from discord.ext import commands
 from dotenv import load_dotenv
@@ -62,14 +63,7 @@ async def on_message(message):
 
                 # !quit command
                 if message.content == "!init-fights" and message.author.id == 143773155549380608:
-                    gameManager.dataManager.data["fights"] = []
-                    for key, player in gameManager.dataManager.data["players"].items():
-                        player.inFight = False
-                    for i, fight in enumerate(gameManager.dataManager.data["fights"]):
-                        if fight.winner is None:
-                            gameManager.dataManager.removeFight(fight)
-                    await message.channel.send("Les combats sont bien réinitialisés !")
-                    print("Fights init done !")
+                    await gameManager.initFights(message.channel)
                 
                 # !rename player command
                 if message.content.startswith("!change-name") and message.author.id == 143773155549380608:
@@ -141,8 +135,11 @@ async def on_message(message):
                 # Message d'aide
                 if message.content == "!help":
                     await gameManager.help(message.channel)
-        except Exception as e:
-            await message.channel.send(e)
-            print(e)
+        except exceptions.ExceptionToUser as e:
+            print(e.stringOutput)
+            if e.messageToUser.channel is None:
+                await message.channel.send(e.messageToUser.content)
+            else:
+                await e.messageToUser.channel.send(e.messageToUser.content)
 
 client.run(TOKEN)

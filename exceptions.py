@@ -82,13 +82,18 @@ class NameExists(ExceptionToUser):
 
 class PlayerInFight(ExceptionToUser):
     def __init__(self):
-        self.stringOutput = "Le joueur n'est pas en combat"
-        self.messageToUser = Message(None, "Tu n'es pas en combat !")
+        self.stringOutput = "Le joueur est en combat"
+        self.messageToUser = Message(None, "Tu es en combat !")
 
 class PlayerNotInFight(ExceptionToUser):
     def __init__(self):
         self.stringOutput = "Le joueur n'est pas en combat"
         self.messageToUser = Message(None, "Tu n'es pas en combat !")
+
+class Player2InFight(ExceptionToUser):
+    def __init__(self, player):
+        self.stringOutput = f"Le joueur 2 {player.name} est en combat"
+        self.messageToUser = Message(None, f"Le joueur {player.name} est déjà en combat !")
 
 class PlayerNotFound(ExceptionToUser):
     def __init__(self, name):
