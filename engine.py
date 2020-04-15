@@ -79,7 +79,7 @@ class GameManager:
             if c_player2 is None:
                 raise exceptions.BugDiscordCommunication()
         
-        # Est-ce que les deux joueurs sont déjà en fight ?
+        # On crée le fight
         created = self.dataManager.createFight(player1, player2)
         if created:
             await utils.send_direct_message(c_player1, "Invitation reçue !\npierre, feuille, ou ciseaux ?")
@@ -221,10 +221,15 @@ class GameManager:
         '''
         Liste les joueurs enregistrés
         '''
-        players = self.dataManager.getListNamePlayers()
+        players = self.dataManager.players
         message = "Liste des joueurs : \n"
         for player in players:
-            message += player + "\n"
+            message += player.name
+            if player.actif:
+                message += ":v:"
+            else:
+                message += " :sleeping:"
+            message += "\n"
         await utils.send_message(channel, message)
 
     async def listCurrentFights(self, channel=None):
@@ -294,10 +299,10 @@ class GameManager:
         
         # En combat ? il faut le trouver et le supprimer
         for fight in self.dataManager.fights:
-            if (fight.player1.idPlayer == id_player or fight.player2.idPlayer == id_player) and fight.winner is None:
+            if fight.isFighting(player):
                 fight.player1.inFight = False
                 fight.player2.inFight = False
-                self.dataManager.removeFight(fight)
+                fight.cancel = True
                 await utils.send_message(channel, "On a bien supprimé ton combat ! Retourne te battre moussaillon ! https://media.giphy.com/media/ihMKNwb2yPEbWJiAmn/giphy.gif")
                 return
         player.inFight = False

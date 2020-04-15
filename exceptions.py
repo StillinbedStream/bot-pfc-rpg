@@ -63,7 +63,7 @@ class AttackMySelf(ExceptionToUser):
 class PlayerPassif(ExceptionToUser):
     def __init__(self):
         self.stringOutput = "Le joueur est en mode passif et ne peut pas attaquer."
-        self.messageToUser = Message(None, "Tu ne peux pas t'attaquer toi-même espèce de singe ! https://tplmoms.com/wp-content/uploads/2017/05/crottes.gif")
+        self.messageToUser = Message(None, "Tu es en monde passif.")
 
 class Player2Passif(ExceptionToUser):
     def __init__(self):

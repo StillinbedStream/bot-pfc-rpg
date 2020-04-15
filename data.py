@@ -162,6 +162,7 @@ class Fight(Entity):
         self.__winner = None
         self.__action_player1 = None
         self.__action_player2 = None
+        self.__cancel = False
     
     # idFight
     @property
@@ -217,6 +218,32 @@ class Fight(Entity):
     def actionPlayer2(self, action_player2):
         self.__action_player2 = action_player2
 
+    # cancel
+    @property
+    def cancel(self):
+        return self.__cancel
+    
+    @cancel.setter
+    def cancel(self, cancel):
+        self.__cancel = cancel
+
+    def isInvolved(self, player):
+        '''
+            Vérifie si le joueur donné est impliqué dans le combat 
+            même si le combat est fini ou cancel.
+        '''
+        if self.player1.idPlayer == player.idPlayer or self.player2.idPlayer == player.idPlayer:
+            return True
+        return False
+
+    def isFighting(self, player):
+        '''
+            Vérifie si le joueur est en train de combattre
+        '''
+        if self.isInvolved(player) and (not self.cancel) and (self.winner is not None):
+            return True
+        return False
+    
 # -- DATA MANAGER
 class DataManager():
 
