@@ -2,26 +2,8 @@ from data import DataManager
 import os
 import discord
 import pickle
-
-
-# -- UTILS FUNCTIONS
-async def send_direct_message(player, message):
-    if player is None:
-        print(message)
-    else:
-        if player.dm_channel is None:
-            await player.create_dm()
-        await player.dm_channel.send(message)
-
-async def send_message(channel, message):
-    '''
-    Envois un message, soit au channel donné, soit en print si le channel est None.
-    '''
-    if channel is None:
-        print(message)
-    else:
-        await channel.send(message)
-
+import exceptions
+import utils
 
 
 # -- GAME MANAGER
@@ -51,11 +33,11 @@ class GameManager:
         # Vérifier que le joueur n'existe pas déjà, soit son ID, soit son name, hein FlutterShy !
         player = self.__dataManager.getPlayerById(id_joueur)
         if player is not None:
-            raise Exception( f"T'es déjà enregistré sous le nom de {player.name}, bouffon !")
+            raise exceptions.PlayerAlreadyRegistered(player)
         
         if self.__dataManager.getPlayerByName(name) is not None:
-            raise Exception(f"Le pseudo {name} est déjà pris, t'es mauvais jack !")
-        
+            raise exceptions.NameExists(name)
+
         self.__dataManager.createPlayer(id_joueur, name)
         await send_message(channel, "Enregistrement DONE. Welcome to the trigone ! Que la triforce soit avec toi !")
         
@@ -69,44 +51,41 @@ class GameManager:
         if client is not None:
             c_player1 = client.get_user(id_joueur1)
 
-        if c_player1.dm_channel is None:
-            raise Exception("On a un problème chef ! Contact l'administrateur, le chef des chefs.")
-
         # Est-ce que le joueur 1 existe dans BDD ? 
         player1 = self.dataManager.getPlayerById(id_joueur1)
         if player1 is None:
-            raise Exception("Non trouvé dans la BDD !\nhttps://media.giphy.com/media/XZ39zg4naZ1O8/giphy.gif")
+            raise exceptions.PlayerNotRegistered()
 
         # Est-ce que le joueur 2 existe dans la BDD
         player2 = self.dataManager.getPlayerById(id_joueur2)
         if player2 is None: 
-            raise Exception("Le joueur 2 n'existe pas dans notre base de données")
+            raise exceptions.Player2NotRegistered()
 
         # Est-ce que le joueur 2 est le joueur 1?
         if player2.idPlayer == player1.idPlayer:
-            raise Exception("Tu ne peux pas t'attaquer toi-même ! https://i.pinimg.com/originals/50/ab/ee/50abee00257155868ac43c7e9cb64bed.gif")
+            raise exceptions.AttackMySelf()
 
         # Est-ce que joueur 1 est passif ?
         if player1.actif is False:
-            raise Exception("Tu es en mode passif espèce de singe ! https://tplmoms.com/wp-content/uploads/2017/05/crottes.gif")
-        
+            raise exceptions.PlayerPassif()
+
         # Est-ce que joueur 2 est passif ?
         if player2.actif is False:
-            raise Exception("Le joueur que tu as attaqué est en mode 'passif'.")
-            
+            raise exceptions.Player2Passif()
+
         # Est-ce que le player 2 existe dans le discord ?
         if client is not None:
             c_player2 = client.get_user(id_joueur2)
             if c_player2 is None:
-                raise Exception("Il y a eu un bug de communication, ce n'est pas possible d'atteindre le joueur 2.")
+                raise exceptions.BugDiscordCommunication()
         
         # Est-ce que les deux joueurs sont déjà en fight ?
         created = self.dataManager.createFight(player1, player2)
         if created:
-            await send_direct_message(c_player1, "Invitation reçue !\npierre, feuille, ou ciseaux ?")
-            await send_direct_message(c_player2, "Vous avez été défié !\npierre, feuille, ou ciseaux ?")
+            await utils.send_direct_message(c_player1, "Invitation reçue !\npierre, feuille, ou ciseaux ?")
+            await utils.send_direct_message(c_player2, "Vous avez été défié !\npierre, feuille, ou ciseaux ?")
         else:
-            await send_direct_message(c_player1, "L'un des deux joueurs est déjà en duel.")
+            await utils.send_direct_message(c_player1, "L'un des deux joueurs est déjà en duel.")
     
     async def mystats(self, id_player, channel=None):
         # Récupérer le joueur
@@ -114,8 +93,8 @@ class GameManager:
 
         # Vérifier que l'utilisateur existe bien
         if player is None:
-            raise Exception("Vous n'êtes pas encore enregistré. Veuillez vous enregistrer avec !register.")
-        
+            raise exceptions.PlayerNotRegistered()
+
         # Retourner les stats du joueur
         actif_message = "actif" if player.actif else "passif"
         in_fight_message = "oui" if player.inFight else "non"
@@ -131,7 +110,7 @@ class GameManager:
             f"état du compte : {actif_message}",
             f"en combat? : {in_fight_message}"
         ])
-        await send_message(channel, message)
+        await utils.send_message(channel, message)
 
     async def actionPlayer(self, id_player, action, channel=None, client=None):
         '''
@@ -143,16 +122,16 @@ class GameManager:
 
         # Vérifier qu'il y a bien un combat
         if fight is None:
-            raise Exception("Tu n'es pas en combat !")
+            raise exceptions.PlayerNotInFight()
 
         # Déjà voté ?
         if (fight.player1.idPlayer == id_player and fight.actionPlayer1 is not None) or (fight.player2.idPlayer == id_player and fight.actionPlayer2 is not None):
-            raise Exception("Tu as déjà voté !")
+            raise exceptions.AlreadyVote()
         
         # Match terminé ?
         if fight.winner is not None:
-            raise Exception("Le duel est fini !")
-        
+            raise exceptions.DuelAlreadyFinished()
+                
         # Sinon on peut ajouter l'action
         if fight.player1.idPlayer == id_player:
             fight.actionPlayer1 = action
@@ -182,8 +161,8 @@ class GameManager:
             if winner_id is None:
                 fight.actionPlayer1 = None
                 fight.actionPlayer2 = None
-                await send_message(channel, "Il y a eu égalité !\npierre, feuille, ciseaux ?")
-                await send_direct_message(c_player2, "Il y a eu égalité !\npierre, feuille, ciseaux ?")
+                await utils.send_message(channel, "Il y a eu égalité !\npierre, feuille, ciseaux ?")
+                await utils.send_direct_message(c_player2, "Il y a eu égalité !\npierre, feuille, ciseaux ?")
                 
             # Cas le combat est fini !
             else:
@@ -226,18 +205,17 @@ class GameManager:
 
                 # Envoyer le message à la bonne personne
                 if winner_id == id_player:
-                    await send_message(channel, win_message)
-                    await send_direct_message(c_player2, loose_message)
+                    await utils.send_message(channel, win_message)
+                    await utils.send_direct_message(c_player2, loose_message)
                 else:
-                    await send_message(channel, loose_message)
-                    await send_direct_message(c_player2, win_message)
+                    await utils.send_message(channel, loose_message)
+                    await utils.send_direct_message(c_player2, win_message)
 
                 self.dataManager.endFight(fight)
                 self.dataManager.syncRanking()
         else:
-            await send_direct_message(c_player2, "L'autre joueur a fait son choix, et toi (pierre, feuille, ciseaux) ?")
-            await send_message(channel, "Nous avons bien reçu votre action")
-        return True
+            await utils.send_direct_message(c_player2, "L'autre joueur a fait son choix, et toi (pierre, feuille, ciseaux) ?")
+            await utils.send_message(channel, "Nous avons bien reçu votre action")
 
     async def listPlayers(self, channel=None):
         '''
@@ -247,7 +225,7 @@ class GameManager:
         message = "Liste des joueurs : \n"
         for player in players:
             message += player + "\n"
-        await send_message(channel, message)
+        await utils.send_message(channel, message)
 
     async def listCurrentFights(self, channel=None):
         '''
@@ -261,7 +239,7 @@ class GameManager:
 
             message += f"{player1.name} versus {player2.name}\n"
         
-        await send_message(channel, message)
+        await utils.send_message(channel, message)
             
     async def becomePassif(self, id_joueur, channel=None):
         '''
@@ -272,14 +250,14 @@ class GameManager:
 
         # Est-ce que le joueur existe ? 
         if player is None:
-            raise Exception("Vous n'êtes pas encore enregistré.\nVeuillez écrire : ```\n!register [nom]\n```")
-        
+            raise exceptions.PlayerNotRegistered()
+
         # Est-ce que le joueur est actif ?
         if player.actif:
             player.actif = False
-            await send_message(channel, "Tu es bien passé en mode passif ! https://thumbs.gfycat.com/PoliteClearBlackfish-size_restricted.gif")
+            await utils.send_message(channel, "Tu es bien passé en mode passif ! https://thumbs.gfycat.com/PoliteClearBlackfish-size_restricted.gif")
         else:
-            raise Exception("T'es déjà passif ! https://thumbs.gfycat.com/PoliteClearBlackfish-size_restricted.gif")
+            raise exceptions.AlreadyPassif()
 
     async def becomeActif(self, id_joueur, channel=None):
         '''
@@ -290,14 +268,14 @@ class GameManager:
 
         # Est-ce que le joueur existe ? 
         if player is None:
-            raise Exception("Vous n'êtes pas encore enregistré.\nVeuillez écrire :\n```\n!register [nom]\n```")
+            raise exceptions.PlayerNotRegistered()
 
         # Est-ce que le joueur est actif ? 
         if not player.actif:
             player.actif = True
-            await send_message(channel, "Tu es bien passé en mode actif ! https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSR5olQJ0iCPut7COcWGoAePC36usg_uE3O8xCYcnp03EPuFz4f9w&s")
+            await utils.send_message(channel, "Tu es bien passé en mode actif ! https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSR5olQJ0iCPut7COcWGoAePC36usg_uE3O8xCYcnp03EPuFz4f9w&s")
         else:
-            raise Exception("T'es déjà actif ! https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSR5olQJ0iCPut7COcWGoAePC36usg_uE3O8xCYcnp03EPuFz4f9w&s")
+            raise exceptions.AlreadyActif()
 
     async def cancelFight(self, id_player, channel):
         '''
@@ -308,11 +286,11 @@ class GameManager:
 
         # Vérifier existence du joueur
         if player is None:
-            raise Exception("Il faut d'abord t'enregistrer tête de noeuds !")
+            raise exceptions.PlayerNotRegistered()
         
         # Est-ce qu'il est en combat ?
         if not player.inFight:
-            raise Exception("Tu n'es pas en combat !")
+            raise exceptions.PlayerNotInFight()
         
         # En combat ? il faut le trouver et le supprimer
         for fight in self.dataManager.fights:
@@ -322,9 +300,9 @@ class GameManager:
                 player1.inFight = False
                 player2.inFight = False
                 self.dataManager.removeFight(fight)
-                await send_message(channel, "On a bien supprimé ton combat ! Retourne te battre moussaillon ! https://media.giphy.com/media/ihMKNwb2yPEbWJiAmn/giphy.gif")
+                await utils.send_message(channel, "On a bien supprimé ton combat ! Retourne te battre moussaillon ! https://media.giphy.com/media/ihMKNwb2yPEbWJiAmn/giphy.gif")
                 return
-        raise Exception("On n'a pas trouvé de combat mais tu peux maintenant attaquer qui tu veux ! https://media.giphy.com/media/ihMKNwb2yPEbWJiAmn/giphy.gif")
+        raise utils.send_message(channel, "On n'a pas trouvé de combat mais tu peux maintenant attaquer qui tu veux ! https://media.giphy.com/media/ihMKNwb2yPEbWJiAmn/giphy.gif")
 
     async def changeName(self, name, new_name, channel):
         # Chercher le player avec le nom donné
@@ -332,17 +310,17 @@ class GameManager:
 
         # Est-ce que le joueur existe ?
         if player is None:
-            raise Exception(f"Le joueur {name} n'existe pas.")
+            raise exceptions.PlayerNotFound(name)
 
         # Est-ce que le nouveau nom n'existe pas déjà ?
         player_new = self.dataManager.getPlayerByName(new_name)
 
         if player_new is not None:
-            raise Exception(f"Le pseudo {new_name} existe déjà")
+            raise exceptions.NameExists(new_name)
         
         # Modifier son nom
         player.name = new_name
-        await send_message(channel, "Le nom du joueur a bien été modifié")
+        await utils.send_message(channel, f"Le nom du joueur {name} a bien été remplacé par {new_name}")
 
     async def help(self, channel):
 
@@ -367,7 +345,7 @@ class GameManager:
             "PS : J'ai soif de boire https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTHHzo3NXvZN2D63gbYVvpzWJ9lyk4gC6v3mheuGX-XeOc-FRe5&s"
         ])
 
-        await send_message(channel, message)
+        await utils.send_message(channel, message)
 
     async def listRanking(self, channel=None):
         '''
@@ -376,7 +354,7 @@ class GameManager:
         message = "Le classement : \n"
         for i, player in enumerate(self.dataManager.ranking):
             message += f"({i}) {player.name} avec {player.score} pts\n"
-        await send_message(channel, message)
+        await utils.send_message(channel, message)
     
     # Utils
     def fightIsFinished(self, fight):
@@ -445,11 +423,3 @@ class GameManager:
         with open(self.PICKLE_FILE, "wb") as f:
             pickle.dump(self.__dataManager, f)
 
-
-
-class EventManager:
-    '''
-    La classe qui gère les événements et appelle les bonnes méthodes.
-    '''
-    def __init__(self):
-        print("Construction de l'event manager")
