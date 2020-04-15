@@ -13,7 +13,8 @@ class Player(Entity):
     def __init__(self):
         self.__name = ""
         self.__id_player = ""
-        self.__in_fight = False
+        self.__sent_fight = None
+        self.__receive_fights = []
 
         self.__nb_win = 0
         self.__nb_win_cons = 0
@@ -45,17 +46,6 @@ class Player(Entity):
     def idPlayer(self, id_player):
         self.__id_player = id_player
     
-
-    # inFight
-    @property
-    def inFight(self):
-        return self.__in_fight
-    
-    @inFight.setter
-    def inFight(self, in_fight):
-        self.__in_fight = in_fight
-    
-
     # nbWin
     @property
     def nbWin(self):
@@ -136,25 +126,59 @@ class Player(Entity):
     def exp(self):
         return self.score
     
+    def addReceiveFight(self, fight):
+        if self.hasAlreadyReceiveFight(fight):
+            return False
+        self.__receive_fights.append(fight)       
+        return True
+    
+    def hasAlreadyReceiveFight(self, fight):
+        for f in self.__receive_fights:
+            if fight == f:
+                return True
+        return False
+        
+    def removeReceiveFight(self, fight):
+        '''
+            Permet de supprimer un combat 
+            que le joueur a reçu.
+        '''
+        for i, f in enumerate(self.__receive_fights):
+            if fight == f:
+                del self.__receive_fights[i]
+                return True
+        return False
+
+    def getNbReceiveFights(self):
+        return len(self.__receive_fights)
+    
+    @property
+    def sentFight(self):
+        return self.__sent_fight
+    
+    @sentFight.setter
+    def sentFight(self, fight):
+        self.__sent_fight = fight
+    
+    def getCurrentReceiveFight(self):
+        for fight in self.__receive_fights:
+            if not fight.alreadyVote(self):
+                return fight
+        return None
+
 class Fight(Entity):
     def __init__(self, idFight, player1, player2):
         '''
             Initialise le combat. Il vérifie aussi que les joueurs ne soient pas
             déjà en combat via la propriété inFight.
         '''
-        # Vérifie si le player 1 et 2 sont en combat
-        print("Player1: ", player1.inFight)
-        print("Player2: ", player2.inFight)
-        print("Player1: ", player1.name)
-        print("Player2: ", player2.name)
-        if player1.inFight:
-            raise exceptions.PlayerInFight()
 
-        if player2.inFight:
-            raise exceptions.Player2InFight(player2)
-
-        player1.inFight = True
-        player2.inFight = True
+        # Vérifie que le joueur 1 n'ait pas déjà attaqué quelqu'un
+        if player1.sentFight is not None:
+            raise exceptions.AlreadySentFight(player1.sentFight)
+        
+        player1.sentFight = self
+        player2.addReceiveFight(self)
 
         self.__id_fight = idFight
         self.__player1 = player1
@@ -390,24 +414,13 @@ class DataManager():
                 current_fights.append(fight)
         return current_fights
     
-    def getPlayerCurrentFight(self, player):
-        '''
-            Chercher un combat en cours d'un joueur donné. 
-            Il ne peut y en avoir qu'un.
-            Retourne None si non trouvé
-        '''
-        for fight in self.__fights:
-            if fight.isFighting(player):
-                return fight
-        return None
-    
     def endFight(self, fight):
         '''
             Réalise toutes les actions de synchronise en fin de combat
             comme mettre à jour les variables in_fight de chaque joueur.
         '''
-        fight.player1.inFight = False
-        fight.player2.inFight = False
+        fight.player1.sentFight = None
+        fight.player2.removeReceiveFight(fight)
     
     # Ranking methods
     def syncRanking(self):

@@ -83,7 +83,7 @@ class GameManager:
         created = self.dataManager.createFight(player1, player2)
         if created:
             await utils.send_direct_message(c_player1, "Invitation reçue !\npierre, feuille, ou ciseaux ?")
-            await utils.send_direct_message(c_player2, "Vous avez été défié !\npierre, feuille, ou ciseaux ?")
+            await utils.send_direct_message(c_player2, f"Vous avez été défié, vous avez {player2.getNbReceiveFights()} combats en attente !\npierre, feuille, ou ciseaux ?")
         else:
             await utils.send_direct_message(c_player1, "L'un des deux joueurs est déjà en duel.")
     
@@ -123,19 +123,20 @@ class GameManager:
         if player is None:
             raise exceptions.PlayerNotRegistered()
         
-        fight = self.dataManager.getPlayerCurrentFight(player)
-
-        # Vérifier qu'il y a bien un combat
-        if fight is None:
-            raise exceptions.PlayerNotInFight()
-
-        # Déjà voté ?
-        if fight.alreadyVote(player):
-            raise exceptions.AlreadyVote()
+        # A quel combat doit-on faire un choix ?
+        fight = None
+        if (player.sentFight is not None) and (not player.sentFight.alreadyVote(player)):
+            fight = player.sentFight
+        else:
+            fight = player.getCurrentReceiveFight()
         
-        # Match terminé ?
-        if fight.winner is not None:
-            raise exceptions.DuelAlreadyFinished()
+        # Si on a déjà fait des choix partout
+        if fight is None:
+            raise exceptions.AlreadyVotedAll()
+        
+
+
+        # ------ 
                 
         # Sinon on peut ajouter l'action
         if fight.player1.idPlayer == id_player:
@@ -143,7 +144,6 @@ class GameManager:
         else:
             fight.actionPlayer2 = action
 
-        
         # Qui est le joueur 2
         if id_player == fight.player1.idPlayer:
             id_player2 = fight.player2.idPlayer
@@ -203,10 +203,12 @@ class GameManager:
                 if looser_player.nbLooseCons  > looser_player.nbLooseConsMax:
                     looser_player.nbLooseConsMax = looser_player.nbLooseCons
 
+                self.dataManager.endFight(fight)
+                self.dataManager.syncRanking()
 
                 # On prépare les messages de win et de loose
-                win_message = f"Vous avez vaincu le joueur {looser_player.name} !"
-                loose_message = f"Vous avez perdu contre le joueur {winner_player.name} !"
+                win_message = f"Vous avez vaincu le joueur {looser_player.name} !\nIl reste {winner_player.getNbReceiveFights()} combats auxquels répondre."
+                loose_message = f"Vous avez perdu contre le joueur {winner_player.name} !\nIl reste {looser_player.getNbReceiveFights()} combats auxquels répondre."
 
                 # Envoyer le message à la bonne personne
                 if winner_id == id_player:
@@ -216,8 +218,6 @@ class GameManager:
                     await utils.send_message(channel, loose_message)
                     await utils.send_direct_message(c_player2, win_message)
 
-                self.dataManager.endFight(fight)
-                self.dataManager.syncRanking()
         else:
             await utils.send_direct_message(c_player2, "L'autre joueur a fait son choix, et toi (pierre, feuille, ciseaux) ?")
             await utils.send_message(channel, "Nous avons bien reçu votre action")
@@ -290,7 +290,6 @@ class GameManager:
     async def cancelFight(self, id_player, channel):
         '''
         '''
-
         # Récupérer le joueur
         player = self.dataManager.getPlayerById(id_player)
 
@@ -298,20 +297,15 @@ class GameManager:
         if player is None:
             raise exceptions.PlayerNotRegistered()
         
-        # Est-ce qu'il est en combat ?
-        if not player.inFight:
-            raise exceptions.PlayerNotInFight()
+        # Est-ce qu'il a bien envoyé un combat ?
+        if player.sentFight is None:
+            raise exceptions.PlayerHasNotSentFight()
         
-        # En combat ? il faut le trouver et le supprimer
-        for fight in self.dataManager.fights:
-            if fight.isFighting(player):
-                fight.player1.inFight = False
-                fight.player2.inFight = False
-                fight.cancel = True
-                await utils.send_message(channel, "On a bien supprimé ton combat ! Retourne te battre moussaillon ! https://media.giphy.com/media/ihMKNwb2yPEbWJiAmn/giphy.gif")
-                return
-        player.inFight = False
-        await utils.send_message(channel, "On n'a pas trouvé de combat mais tu peux maintenant attaquer qui tu veux ! https://media.giphy.com/media/ihMKNwb2yPEbWJiAmn/giphy.gif")
+        player.sentFight.cancel = True
+        player.sentFight.player2.removeReceiveFight(player.sentFight)
+        player.sentFight = None
+        await utils.send_message(channel, "On a bien supprimé ton combat ! Retourne te battre moussaillon ! https://media.giphy.com/media/ihMKNwb2yPEbWJiAmn/giphy.gif")
+
 
     async def changeName(self, name, new_name, channel):
         # Chercher le player avec le nom donné
@@ -448,7 +442,6 @@ class GameManager:
                 self.__dataManager = pickle.load(f)
         self.__dataManager.syncRanking()
         
-    
     def save_game(self):
         '''
         Sauvegarde les données du jeu

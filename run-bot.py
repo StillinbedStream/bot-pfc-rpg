@@ -10,8 +10,8 @@ from dotenv import load_dotenv
 
 from engine import GameManager
 
-# TODO:  - Système de connexion données - Tester les fonctionnalités
-
+# TODO: - Système de connexion données - Tester les fonctionnalités
+# TODO: - Savoir combien de combats il nous reste à répondre
 
 load_dotenv() # Load les variables d'ENV depuis .env
 TOKEN = os.getenv("DISCORD_TOKEN")

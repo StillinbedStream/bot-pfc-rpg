@@ -100,11 +100,21 @@ class PlayerNotFound(ExceptionToUser):
         self.stringOutput = "Le joueur {name} n'a pas été trouvé."
         self.messageToUser = Message(None, "Le joueur {name} n'a pas été trouvé.")
 
+class PlayerHasNotSentFight(ExceptionToUser):
+    def __init__(self):
+        self.stringOutput = "Le joueur n'a pas déjà attaqué de joueurs."
+        self.messageToUser = Message(None, "Tu n'as pas déjà attaqué de joueurs.")
+
 
 class AlreadyVote(ExceptionToUser):
     def __init__(self):
         self.stringOutput = "Le joueur a déjà voté"
         self.messageToUser = Message(None, "Tu as déjà voté !")
+
+class AlreadyVotedAll(ExceptionToUser):
+    def __init__(self):
+        self.stringOutput = "Le joueur a déjà voté pour tous les duels en cours"
+        self.messageToUser = Message(None, "Tu as déjà voté pour tous les duels en cours !")
 
 class AlreadyPassif(ExceptionToUser):
     def __init__(self):
@@ -115,6 +125,11 @@ class AlreadyActif(ExceptionToUser):
     def __init__(self):
         self.stringOutput = "Le joueur est déjà en mode actif."
         self.messageToUser = Message(None, "T'es déjà actif ! https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSR5olQJ0iCPut7COcWGoAePC36usg_uE3O8xCYcnp03EPuFz4f9w&s")
+
+class AlreadySentFight(ExceptionToUser):
+    def __init__(self, fight):
+        self.stringOutput = f"{fight.player1.name} a déjà attaqué le joueur {fight.player2.name}."
+        self.messageToUser = Message(None, f"T'as déjà attaqué le joueur {fight.player2.name} !")
 
 class DuelAlreadyFinished(ExceptionToUser):
     def __init__(self):
