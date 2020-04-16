@@ -16,11 +16,11 @@ class WallOfPFC:
 
         # Si le winner a 5 victoires consécutives
         if fight.winner.nbWinCons == 5:
-            await utils.send_message(self.__channel, f"<@!{fight.winner.idPlayer}> {fight.winner.name} a gagné 5 victoires consécutives ! :raised_hands:")
+            await utils.send_message(self.__channel, f"<@!{fight.winner.idPlayer}> {fight.winner.name} a gagné 5 parties consécutives ! :raised_hands:")
         
         # Si le looser a 5 défaites consécutives
         if fight.looser.nbLooseCons == 5:
-            await utils.send_message(self.__channel, f"<@!{fight.looser.idPlayer}> {fight.looser.name} a perdu 5 victoires consécutives ! :thumbsdown:")
+            await utils.send_message(self.__channel, f"<@!{fight.looser.idPlayer}> {fight.looser.name} a perdu 5 parties consécutives ! :thumbsdown:")
         
         # Si c'est notre première victoire 
         if fight.winner.nbWin == 1:
