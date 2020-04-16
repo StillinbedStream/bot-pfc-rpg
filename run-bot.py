@@ -138,9 +138,11 @@ async def on_message(message):
 
                 if message.content == "!next-fights":
                     await gameManager.nextFights(message.author.id, message.channel)
+                
                 # if message.content == "!stats-with":
                 #     await gameManager.statsWith()
                 # Message d'aide
+                
                 if message.content == "!help":
                     await gameManager.help(message.channel)
         except exceptions.ExceptionToUser as e:

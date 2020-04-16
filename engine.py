@@ -345,12 +345,13 @@ class GameManager:
             "`!players` : liste les joueurs",
             "`!attack [pseudo du joueur]` : attaque la personne ayant le pseudo fourni",
             "",
+            "**Note pour jouer :** quand tu reçois une attaque, réponds par pierre, feuille ou ciseaux",
+            "",
             "Bienvenu sur le message d'aide, voici la liste des commandes :",
             "`!help` : message d'aide avec la liste des commandes",
             "`!register [pseudo]` : s'enregistrer avec le pseudo donné",
             "`!players` : liste les noms des joueurs",
             "`!show-actifs` : Liste tous les joueurs actifs",
-            "`!show-availables` : Liste les joueurs que l'on peut attaquer",
             "`!attack [pseudo du joueur]` : attaquer le joueur avec le pseudo donné",
             "`!mystats` : voir mes statistiques",
             "`!current-fights` : liste les combats en cours",
@@ -358,6 +359,7 @@ class GameManager:
             "`!actif` : vous met en mode actif, vous pouvez être attaqué et attaquer à nouveau",
             "`!passif` : vous met en mode passif, vous ne pouvez plus attaquer et être attaqué",
             "`!cancel` : supprime le combat en cours, n'en abuse pas s'il te plaît.",
+            "`!next-fights` : affiche la liste de nos combats en cours."
             "",
             "PS : J'ai soif de boire https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTHHzo3NXvZN2D63gbYVvpzWJ9lyk4gC6v3mheuGX-XeOc-FRe5&s"
         ])
