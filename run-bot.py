@@ -136,9 +136,6 @@ async def on_message(message):
                 if message.content == "!show-actifs":
                     await gameManager.showActifs(message.channel)
 
-                if message.content == "!show-availables":
-                    await gameManager.showAvailables(message.channel)
-                
                 if message.content == "!next-fights":
                     await gameManager.nextFights(message.author.id, message.channel)
                 # if message.content == "!stats-with":

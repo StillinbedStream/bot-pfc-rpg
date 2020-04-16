@@ -389,13 +389,6 @@ class GameManager:
                 message += f"{player.name} :v:\n"
         await utils.send_message(channel, message)
 
-    async def showAvailables(self, channel=None):
-        message = "Liste des joueurs actifs \n"
-        for player in self.dataManager.players:
-            if player.actif and not player.inFight:
-                message += f"{player.name} :v:\n"
-        await utils.send_message(channel, message)
-
     async def nextFights(self, id_player, channel=None):
         # Récupérer le player
         player = self.dataManager.getPlayerById(id_player)
