@@ -176,8 +176,8 @@ class GameManager:
             if winner_id is None:
                 fight.actionPlayer1 = None
                 fight.actionPlayer2 = None
-                await utils.send_direct_message(c_player1, f"[{player1.getNbReceiveFights()}] Il y a eu égalité avec **{player2.name}** !")
-                await utils.send_direct_message(c_player2, f"[{player2.getNbReceiveFights()}] Il y a eu égalité **{player1.name}**!")
+                await utils.send_direct_message(c_player1, f"[{player1.getNbReceiveFights()}] Il y a eu égalité avec **{player2.name}** ! Rejouez.")
+                await utils.send_direct_message(c_player2, f"[{player2.getNbReceiveFights()}] Il y a eu égalité **{player1.name}**! Rejouez.")
                 
             # Cas le combat est fini !
             else:
