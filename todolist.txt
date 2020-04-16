@@ -17,13 +17,16 @@ TODO :
 - Afficher qui nous attaque - Done
 - Afficher qui a répondu à l'attaque - Done
 - !next-fights - Done
-- Mettre à jour le help - Current
+- Mettre à jour le help - Done
 - Achievements (avec des bages/emojis)
 - Factions (emoji au pseudo)
 - Leveling
 - Sorts
 - Pouvoir voir dans actif seulement les
-joueurs qui sont connectés à discord
+joueurs qui sont connectés à discord - DONE
 - Système de tournois
 - !stats-with [nomplayer]Stats avec un joueur particulier
 - Jouer une première partie avec le bot quand on se register
+- Pouvoir configurer dans des fichiers 
+	- Le help (fichier md)
+	- événements

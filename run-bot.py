@@ -18,6 +18,7 @@ load_dotenv() # Load les variables d'ENV depuis .env
 TOKEN = os.getenv("DISCORD_TOKEN")
 GUILD = os.getenv('DISCORD_GUILD')
 WALL_OF_EPICNESS = os.getenv('WALL_OF_EPICNESS')
+GUILD_ID = int(os.getenv("GUILD_ID"))
 
 # Préparation client et variables
 client = discord.Client()
@@ -36,6 +37,7 @@ async def on_ready():
     gameManager = GameManager(wall.WallOfPFC(wall_of_epicness_channel))
     gameManager.load_game()
     system["gameManager"] = gameManager
+    system["guild"] = client.get_guild(GUILD_ID)
 
 
 @client.event
@@ -134,7 +136,7 @@ async def on_message(message):
                 
                 # Montrer les actifs
                 if message.content == "!show-actifs":
-                    await gameManager.showActifs(message.channel)
+                    await gameManager.showActifs(system["guild"], message.channel)
 
                 if message.content == "!next-fights":
                     await gameManager.nextFights(message.author.id, message.channel)

@@ -384,10 +384,12 @@ class GameManager:
         await channel.send("Les combats sont bien réinitialisés !")
         print("Fights init done !")
     
-    async def showActifs(self, channel=None):
+    async def showActifs(self, guild, channel=None):
         message = "Liste des joueurs actifs \n"
         for player in self.dataManager.players:
-            if player.actif:
+            c_player = guild.get_member(player.idPlayer)
+            print(c_player.status)
+            if player.actif and c_player.status == discord.Status.online:
                 message += f"{player.name} :v:\n"
         await utils.send_message(channel, message)
 
