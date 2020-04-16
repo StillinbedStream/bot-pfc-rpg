@@ -30,3 +30,5 @@ joueurs qui sont connectés à discord - DONE
 - Pouvoir configurer dans des fichiers 
 	- Le help (fichier md)
 	- événements
+- Players, il faut pas montrer les actifs
+- Faire remonter une erreur facilement
