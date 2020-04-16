@@ -43,9 +43,10 @@ pip install -r requirements.txt
 # Configurer le fichier .env
 Le fichier .env contient l'ensemble des variables d'environnement à initialiser lors du lancement du bot. Vous devez le remplir de la manière suivante : 
 ```
-DISCORD_TOKEN=XXXXXXXX
-DISCORD_GUILD=YYYYYYYY
-ID_CHANNEL=ZZZZZZZZ
+DISCORD_TOKEN=[Token de votre bot]
+DISCORD_GUILD=[Nom de la guilde]
+WALL_OF_EPICNESS=[identifiant du chan]
+GUILD_ID=[identifiant de la guilde]
 ```
 PS : Pour le moment, ID_CHANNEL ne sert à rien mais elle sera bientôt utilisée par le bot pour les systèmes d'achievement !
 
