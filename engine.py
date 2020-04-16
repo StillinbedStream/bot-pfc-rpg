@@ -15,8 +15,9 @@ class GameManager:
 
     PICKLE_FILE = "data.cornichon"
 
-    def __init__(self, data = None):
+    def __init__(self, wallOfPFC):
         self.__dataManager = DataManager()
+        self.__wallOfPFC = wallOfPFC
     
     @property
     def dataManager(self):
@@ -82,10 +83,10 @@ class GameManager:
         # On crée le fight
         created = self.dataManager.createFight(player1, player2)
         if created:
-            await utils.send_direct_message(c_player1, "Invitation reçue !\npierre, feuille, ou ciseaux ?")
-            await utils.send_direct_message(c_player2, f"Vous avez été défié, vous avez {player2.getNbReceiveFights()} combats en attente !\npierre, feuille, ou ciseaux ?")
+            await utils.send_direct_message(c_player1, f"[{player1.getNbReceiveFights()}] {player2.name} a reçu l'invitation")
+            await utils.send_direct_message(c_player2, f"[{player2.getNbReceiveFights()}] **{player1.name}** vous a défié")
         else:
-            await utils.send_direct_message(c_player1, "L'un des deux joueurs est déjà en duel.")
+            await utils.send_direct_message(c_player1, f"[{player1.getNbReceiveFights()}] Tu as déjà envoyé un duel.")
     
     async def mystats(self, id_player, channel=None):
         # Récupérer le joueur
@@ -97,7 +98,7 @@ class GameManager:
 
         # Retourner les stats du joueur
         actif_message = "actif" if player.actif else "passif"
-        in_fight_message = "oui" if player.inFight else "non"
+        in_fight_message = "non" if player.sentFight is None else "oui"
         message = "\n".join([
             f"Vos stats {player.name}",
             f"win : {player.nbWin}",
@@ -108,7 +109,7 @@ class GameManager:
             f"Looses consécutives MAX: {player.nbLooseConsMax}",
             f"score : {player.score}",
             f"état du compte : {actif_message}",
-            f"en combat? : {in_fight_message}"
+            f"combat envoyé ? : {in_fight_message}"
         ])
         await utils.send_message(channel, message)
 
@@ -147,13 +148,22 @@ class GameManager:
         # Qui est le joueur 2
         if id_player == fight.player1.idPlayer:
             id_player2 = fight.player2.idPlayer
+            player2 = fight.player2
+            player1 = fight.player1
         else:
             id_player2 = fight.player1.idPlayer
+            player2 = fight.player1
+            player1 = fight.player2
 
-        # Créer le DM de Joueur 2
-        _player2 = None
+        # Créer le DM de Joueur 1
+        c_player2 = None
         if client is not None:
-            c_player2 = client.get_user(id_player2)
+            c_player2 = client.get_user(player2.idPlayer)
+        
+        # Créer le DM de Joueur 2
+        c_player1 = None
+        if client is not None:
+            c_player1 = client.get_user(player1.idPlayer)
         
         
         # Match terminé maintenant ?
@@ -166,14 +176,11 @@ class GameManager:
             if winner_id is None:
                 fight.actionPlayer1 = None
                 fight.actionPlayer2 = None
-                await utils.send_message(channel, "Il y a eu égalité !\npierre, feuille, ciseaux ?")
-                await utils.send_direct_message(c_player2, "Il y a eu égalité !\npierre, feuille, ciseaux ?")
+                await utils.send_direct_message(c_player1, f"[{player1.getNbReceiveFights()}] Il y a eu égalité avec **{player2.name}** !")
+                await utils.send_direct_message(c_player2, f"[{player2.getNbReceiveFights()}] Il y a eu égalité **{player1.name}**!")
                 
             # Cas le combat est fini !
             else:
-                # Update fight
-                fight.winner = winner_id
-
                 # Get winner and looser
                 if winner_id == id_player:
                     looser_id = id_player2
@@ -183,6 +190,9 @@ class GameManager:
                 # Get players
                 winner_player = self.dataManager.getPlayerById(winner_id)
                 looser_player = self.dataManager.getPlayerById(looser_id)
+
+                # Update fight
+                fight.winner = winner_player
 
                 # Augmenter les compteurs win et loose
                 winner_player.nbWin += 1
@@ -207,8 +217,8 @@ class GameManager:
                 self.dataManager.syncRanking()
 
                 # On prépare les messages de win et de loose
-                win_message = f"Vous avez vaincu le joueur {looser_player.name} !\nIl reste {winner_player.getNbReceiveFights()} combats auxquels répondre."
-                loose_message = f"Vous avez perdu contre le joueur {winner_player.name} !\nIl reste {looser_player.getNbReceiveFights()} combats auxquels répondre."
+                win_message = f"[{winner_player.getNbReceiveFights()}] Vous avez vaincu **{looser_player.name}** !"
+                loose_message = f"[{looser_player.getNbReceiveFights()}] Vous avez perdu contre le joueur {winner_player.name} !"
 
                 # Envoyer le message à la bonne personne
                 if winner_id == id_player:
@@ -217,10 +227,13 @@ class GameManager:
                 else:
                     await utils.send_message(channel, loose_message)
                     await utils.send_direct_message(c_player2, win_message)
+                
+                # Management of WallOfPFC
+                await self.__wallOfPFC.onWin(fight)
 
         else:
-            await utils.send_direct_message(c_player2, "L'autre joueur a fait son choix, et toi (pierre, feuille, ciseaux) ?")
-            await utils.send_message(channel, "Nous avons bien reçu votre action")
+            await utils.send_direct_message(c_player2, f"[{player2.getNbReceiveFights()}] **{player.name}** a fait son choix")
+            await utils.send_direct_message(c_player1, f"[{player1.getNbReceiveFights()}] Nous avons bien reçu votre action")
 
     async def listPlayers(self, channel=None):
         '''
@@ -306,7 +319,6 @@ class GameManager:
         player.sentFight = None
         await utils.send_message(channel, "On a bien supprimé ton combat ! Retourne te battre moussaillon ! https://media.giphy.com/media/ihMKNwb2yPEbWJiAmn/giphy.gif")
 
-
     async def changeName(self, name, new_name, channel):
         # Chercher le player avec le nom donné
         player = self.dataManager.getPlayerByName(name)
@@ -383,6 +395,37 @@ class GameManager:
             if player.actif and not player.inFight:
                 message += f"{player.name} :v:\n"
         await utils.send_message(channel, message)
+
+    async def nextFights(self, id_player, channel=None):
+        # Récupérer le player
+        player = self.dataManager.getPlayerById(id_player)
+
+        # Est-ce que le joueur existe ?
+        if player is None:
+            raise exceptions.PlayerNotRegistered()
+
+        # Lister les combats
+        message = "Combat envoyé : "
+        if player.sentFight is None:
+            message += "Aucun\n"
+        else:
+            message += f"**{player.sentFight.player2.name}** "
+            if player.sentFight.alreadyVote(player):
+                message += ":ok_hand:"
+            message += "\n"
+                
+        
+        message += "\nCombats reçus :\n"
+        if len(player.receiveFights) == 0:
+            message += "Il n'y a pas de combats"
+        for i, fight in enumerate(player.receiveFights):
+            message += f"[{i}] {fight.player1.name} "
+            if fight.alreadyVote(player):
+                message += ":ok_hand:"
+            message += "\n"
+
+        await utils.send_message(channel, message)
+
 
     # Utils
     def fightIsFinished(self, fight):

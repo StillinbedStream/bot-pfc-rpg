@@ -160,6 +160,10 @@ class Player(Entity):
     def sentFight(self, fight):
         self.__sent_fight = fight
     
+    @property
+    def receiveFights(self):
+        return self.__receive_fights
+    
     def getCurrentReceiveFight(self):
         for fight in self.__receive_fights:
             if not fight.alreadyVote(self):
@@ -223,6 +227,15 @@ class Fight(Entity):
     @winner.setter
     def winner(self, winner):
         self.__winner = winner
+    
+    @property
+    def looser(self):
+        if self.winner is None:
+            return None
+        if self.player1.idPlayer == self.winner.idPlayer:
+            return self.player2
+        else:
+            return self.player1
     
     # actionPlayer1
     @property

@@ -4,6 +4,7 @@ import random
 import discord
 import asyncio 
 import exceptions
+import wall
 
 from discord.ext import commands
 from dotenv import load_dotenv
@@ -16,41 +17,40 @@ from engine import GameManager
 load_dotenv() # Load les variables d'ENV depuis .env
 TOKEN = os.getenv("DISCORD_TOKEN")
 GUILD = os.getenv('DISCORD_GUILD')
-ID_CHANNEL = os.getenv('ID_CHANNEL')
+WALL_OF_EPICNESS = os.getenv('WALL_OF_EPICNESS')
 
-
-gameManager = GameManager()
+# Préparation client et variables
 client = discord.Client()
-
-data = {
-    "users": {},
-    "combats": [],
-    "ids": {
-        "combats": 0
-    }
+system = {
+    "gameManager": None
 }
-
-gameManager.load_game()
 
 
 @client.event
 async def on_ready():
     print(f'{client.user} has connected to Discord!')
+    # Une fois qu'on est co, on crée le jeu
+    wall_of_epicness_channel = client.get_channel(int(WALL_OF_EPICNESS))
+    if wall_of_epicness_channel is None:
+        raise Exception("On n'a pas trouvé le channel wall of PFC")
+    gameManager = GameManager(wall.WallOfPFC(wall_of_epicness_channel))
+    gameManager.load_game()
+    system["gameManager"] = gameManager
 
 
 @client.event
 async def on_disconnect():
     print("Déconnexion du BOT")
+    gameManager = system["gameManager"]
     gameManager.save_game()
 
 @client.event
 async def on_message(message):
-
     lock = asyncio.Lock()
 
     async with lock:
         try:
-
+            gameManager = system["gameManager"]
             if message.author == client.user:
                 return
 
@@ -139,6 +139,10 @@ async def on_message(message):
                 if message.content == "!show-availables":
                     await gameManager.showAvailables(message.channel)
                 
+                if message.content == "!next-fights":
+                    await gameManager.nextFights(message.author.id, message.channel)
+                # if message.content == "!stats-with":
+                #     await gameManager.statsWith()
                 # Message d'aide
                 if message.content == "!help":
                     await gameManager.help(message.channel)

@@ -1,0 +1,29 @@
+
+POUR TESTER LE BOT DISCORD : 
+- Se connecter au serveur (lien dans le chat)
+- parler à idolon-bot
+- !register [name]
+- !help 
+----------------------------------------
+
+WALL OF PFC TODO : 
+- 5 défaites ou win consécutives - DONE
+- First win (first blood) - DONE
+- Avoir n égalité d'affilé
+	- compteur d'égalités sur un fight
+- Avoir n loose
+
+TODO : 
+- Afficher qui nous attaque - Done
+- Afficher qui a répondu à l'attaque - Done
+- !next-fights - Done
+- Mettre à jour le help - Current
+- Achievements (avec des bages/emojis)
+- Factions (emoji au pseudo)
+- Leveling
+- Sorts
+- Pouvoir voir dans actif seulement les
+joueurs qui sont connectés à discord
+- Système de tournois
+- !stats-with [nomplayer]Stats avec un joueur particulier
+- Jouer une première partie avec le bot quand on se register
