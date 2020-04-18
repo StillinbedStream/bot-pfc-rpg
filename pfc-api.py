@@ -12,4 +12,4 @@ app = Flask(__name__)
 def first_players():
     with open("data.cornichon", "rb") as f:
         data = pickle.load(f)
-        return render_template("first_players.html", players=data.ranking[:5])
+        return render_template("first_players.html", players=data.ranking[:3])

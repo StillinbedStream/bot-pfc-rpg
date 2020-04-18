@@ -1,14 +1,25 @@
 <html>
     <head>
-        
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/uikit@3.4.1/dist/css/uikit.min.css" />
+        <script src="https://cdn.jsdelivr.net/npm/uikit@3.4.1/dist/js/uikit.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/uikit@3.4.1/dist/js/uikit-icons.min.js"></script>
     </head>
     <body>
-        <h1>Un simple site !</h1>
-        <p>On va faire un test sympa !</p>
-        <div>
-        {% for player in players %}
-            {{ player.name }}
-        {% endfor %}
+        <div class="uk-card uk-card-primary">
+            {% for player in players %}
+            <div class="uk-card-body">
+                <div class="uk-grid-small uk-flex-middle" uk-grid>
+                    <div class="uk-width-auto">
+                        <!-- <img class="uk-border-circle" width="40" height="40" src="images/avatar.jpg"> -->
+                        <span class="uk-badge">1</span>
+                    </div>
+                    <div class="uk-width-expand">
+                        <h3 class="uk-card-title uk-margin-remove-bottom">{{ player.name }}</h3>
+                        <p class="uk-text-meta uk-margin-remove-top">{{ player.score }}</p>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
         </div>
     </body>
 </html>
