@@ -1,4 +1,4 @@
-# bot.py
+
 import os
 import random
 import discord
@@ -66,6 +66,7 @@ async def on_message(message):
                 # !quit command
                 if message.content == "!init-fights" and message.author.id == 143773155549380608:
                     await gameManager.initFights(message.channel)
+                    gameManager.save_game()
                 
                 # !rename player command
                 if message.content.startswith("!change-name") and message.author.id == 143773155549380608:
@@ -74,11 +75,13 @@ async def on_message(message):
                         name = splited[1]
                         new_name = splited[2]
                         await gameManager.changeName(name, new_name, message.channel)
+                        gameManager.save_game()
 
 
                 # choose action
                 if message.content.lower() in ["pierre", "feuille", "ciseaux"]:
                     await gameManager.actionPlayer(message.author.id, message.content, message.channel, client)
+                    gameManager.save_game()
 
                 # Enregistrement d'un joueur
                 if message.content.startswith("!register"):
@@ -89,12 +92,14 @@ async def on_message(message):
                             await gameManager.register(message.author.id, name, message.channel)
                         else:
                             await message.channel.send("Il faut écrire !register [mon pseudo] imbécile ! (sans le imbécile, imbécile)")
+                        gameManager.save_game()
 
                     
                 
                 # Liste des joueurs
                 if message.content == "!players":
                     await gameManager.listPlayers(message.channel)
+                    gameManager.save_game()
                 
 
                 # Attaque
@@ -108,6 +113,7 @@ async def on_message(message):
                                 await message.channel.send(f"Le joueur {name_player2} n'existe pas, comme ton charisme ! https://gifimage.net/wp-content/uploads/2017/08/popopo-gif-1.gif")
                             else:
                                 await gameManager.attack(message.author.id, player2.idPlayer, client)
+                            gameManager.save_game()
 
 
                 # Current fights
@@ -125,14 +131,17 @@ async def on_message(message):
                 # Devenir passif
                 if message.content == "!passif":
                     await gameManager.becomePassif(message.author.id, message.channel)
+                    gameManager.save_game()
                 
                 # Devenir actif
                 if message.content == "!actif":
                     await gameManager.becomeActif(message.author.id, message.channel)
+                    gameManager.save_game()
 
                 # Arrêter son combat
                 if message.content == "!cancel":
                     await gameManager.cancelFight(message.author.id, message.channel)
+                    gameManager.save_game()
                 
                 # Montrer les actifs
                 if message.content == "!show-actifs":
