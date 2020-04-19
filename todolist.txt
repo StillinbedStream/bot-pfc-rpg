@@ -6,19 +6,22 @@ POUR TESTER LE BOT DISCORD :
 - !help 
 ----------------------------------------
 
-WALL OF PFC TODO : 
-- 5 défaites ou win consécutives - DONE
-- First win (first blood) - DONE
-- Avoir n égalité d'affilé
-	- compteur d'égalités sur un fight
-- Avoir n loose
-
+FIRST GAME : 
+!show-actifs
+!attack [Nom du joueur]
+Pour répondre à un combat : pierre/feuille/ciseaux
 TODO : 
-- Afficher qui nous attaque - Done
-- Afficher qui a répondu à l'attaque - Done
-- !next-fights - Done
-- Mettre à jour le help - Done
-- Achievements (avec des bages/emojis)
+- améliorer le help - séparer les actions de jeu des stats-- DONE
+- afficher le message à Player 2 quand on annule son combat -- DONE 
+- Mettre les scores à côté des noms des players(show-actifs) -- DONE
+- Quand tu te register : Pour afficher la liste des persos, fais !show-actifs, pour jouer, fais !attack [nom joueur] -- DONE
+
+- Afficher les stats d'un joueur -- DONE
+- attack-random : attaque aléatoirement un joueur actif
+
+
+
+- Achievements (avec des bages/emojis et un TAG)
 - Factions (emoji au pseudo)
 - Leveling
 - Sorts
@@ -32,3 +35,7 @@ joueurs qui sont connectés à discord - DONE
 	- événements
 - Players, il faut pas montrer les actifs
 - Faire remonter une erreur facilement
+
+- Augmenter la portée de visibilité des joueurs en fonction de son niveau (je vois plus de joueurs autour de mon classement)
+- FAIRE UN TRELLO
+The Elder Papers: Oblirock + le DLC Cissors of the Nine

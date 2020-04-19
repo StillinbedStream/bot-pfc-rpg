@@ -115,6 +115,8 @@ async def on_message(message):
                             else:
                                 await gameManager.attack(message.author.id, player2.idPlayer, client)
                             gameManager.save_game()
+                        elif len(splited) == 1:
+                            await gameManager.attackRandomPlayer(message.author.id, client)
 
 
                 # Current fights
@@ -141,7 +143,7 @@ async def on_message(message):
 
                 # Arrêter son combat
                 if message.content == "!cancel":
-                    await gameManager.cancelFight(message.author.id, message.channel)
+                    await gameManager.cancelFight(message.author.id, client, message.channel)
                     gameManager.save_game()
                 
                 # Montrer les actifs
@@ -154,6 +156,13 @@ async def on_message(message):
                 # if message.content == "!stats-with":
                 #     await gameManager.statsWith()
                 # Message d'aide
+
+                if message.content.startswith("!show-stats "):
+                    splited = message.content.split(" ")
+                    if len(splited) > 1:
+                        name_player2 = splited[1]
+                        await gameManager.showPlayerStats(name_player2, message.channel)
+
                 
                 if message.content == "!help":
                     await gameManager.help(message.channel)

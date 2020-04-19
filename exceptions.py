@@ -105,6 +105,12 @@ class PlayerHasNotSentFight(ExceptionToUser):
         self.stringOutput = "Le joueur n'a pas déjà attaqué de joueurs."
         self.messageToUser = Message(None, "Tu n'as pas déjà attaqué de joueurs.")
 
+class Player2DoesNotExist(ExceptionToUser):
+    def __init__(self, name):
+        self.stringOutput = "Le joueur {name} n'existe pas"
+        self.messageToUser = Message(None, f"Le joueur {name} n'existe pas")
+
+
 
 class AlreadyVote(ExceptionToUser):
     def __init__(self):

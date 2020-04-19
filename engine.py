@@ -4,6 +4,8 @@ import discord
 import pickle
 import exceptions
 import utils
+import asyncio
+from random import choice
 
 
 # -- GAME MANAGER
@@ -41,7 +43,13 @@ class GameManager:
 
         self.__dataManager.createPlayer(id_joueur, name)
         await utils.send_message(channel, "Enregistrement DONE. Welcome to the trigone ! Que la triforce soit avec toi !")
-        
+        await asyncio.sleep(4)
+        await utils.send_message(channel, "Dans un premier temps affiche la liste des joueurs actifs avec la commande : !show-actifs")
+        await asyncio.sleep(4)
+        await utils.send_message(channel, "Tu peux ensuite attaquer qui tu veux avec la commande : !attack [pseudo]")
+        await asyncio.sleep(4)
+        await utils.send_message(channel, "Pour ne plus subir d'attaques, utilises la commande : !passif")
+
     async def attack(self, id_joueur1, id_joueur2, client=None):
         '''
         Attaquer un joueur
@@ -84,10 +92,29 @@ class GameManager:
         created = self.dataManager.createFight(player1, player2)
         if created:
             await utils.send_direct_message(c_player1, f"[{player1.getNbReceiveFights()}] {player2.name} a reçu l'invitation")
+            await utils.send_direct_message(c_player1, f"Choisis : pierre, feuille ou ciseaux")
             await utils.send_direct_message(c_player2, f"[{player2.getNbReceiveFights()}] **{player1.name}** vous a défié")
+            await utils.send_direct_message(c_player2, f"Choisis : pierre, feuille, ciseaux")
         else:
             await utils.send_direct_message(c_player1, f"[{player1.getNbReceiveFights()}] Tu as déjà envoyé un duel.")
     
+    async def attackRandomPlayer(self, id_player, client):
+
+        # Récupérer le player
+        player = self.dataManager.getPlayerById(id_player)
+
+        # Vérifier si le joueur existe
+        if player is None:
+            raise exceptions.PlayerNotRegistered()
+        
+        # Choisir un joueur aléatoirement
+        players = self.dataManager.players.copy()
+        players.remove(player)
+        player2 = choice(players)
+
+        # On crée le fight
+        await self.attack(id_player, player2.idPlayer, client)
+
     async def mystats(self, id_player, channel=None):
         # Récupérer le joueur
         player = self.dataManager.getPlayerById(id_player)
@@ -278,7 +305,7 @@ class GameManager:
         # Est-ce que le joueur est actif ?
         if player.actif:
             player.actif = False
-            await utils.send_message(channel, "Tu es bien passé en mode passif ! https://thumbs.gfycat.com/PoliteClearBlackfish-size_restricted.gif")
+            await utils.send_message(channel, "Tu es bien passé en mode passif ! Utilises la commande !actif pour redevenir attaquable. https://thumbs.gfycat.com/PoliteClearBlackfish-size_restricted.gif")
         else:
             raise exceptions.AlreadyPassif()
 
@@ -296,11 +323,11 @@ class GameManager:
         # Est-ce que le joueur est actif ? 
         if not player.actif:
             player.actif = True
-            await utils.send_message(channel, "Tu es bien passé en mode actif ! https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSR5olQJ0iCPut7COcWGoAePC36usg_uE3O8xCYcnp03EPuFz4f9w&s")
+            await utils.send_message(channel, "Tu es bien passé en mode actif ! Utilises la commande !passif pour ne plus être attaqué. https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSR5olQJ0iCPut7COcWGoAePC36usg_uE3O8xCYcnp03EPuFz4f9w&s")
         else:
             raise exceptions.AlreadyActif()
 
-    async def cancelFight(self, id_player, channel):
+    async def cancelFight(self, id_player, client=None, channel=None):
         '''
         '''
         # Récupérer le joueur
@@ -314,8 +341,16 @@ class GameManager:
         if player.sentFight is None:
             raise exceptions.PlayerHasNotSentFight()
         
+        # Est-ce que le player 2 existe dans le discord ?
+        c_player = None
+        if client is not None:
+            c_player2 = client.get_user(player.sentFight.player2.idPlayer)
+            if c_player2 is None:
+                raise exceptions.BugDiscordCommunication()
+        
         player.sentFight.cancel = True
         player.sentFight.player2.removeReceiveFight(player.sentFight)
+        await utils.send_direct_message(c_player2, f"Le combat avec {player.name} a été annulé.")
         player.sentFight = None
         await utils.send_message(channel, "On a bien supprimé ton combat ! Retourne te battre moussaillon ! https://media.giphy.com/media/ihMKNwb2yPEbWJiAmn/giphy.gif")
 
@@ -347,19 +382,24 @@ class GameManager:
             "",
             "**Note pour jouer :** quand tu reçois une attaque, réponds par pierre, feuille ou ciseaux",
             "",
-            "Bienvenu sur le message d'aide, voici la liste des commandes :",
+            "Commandes de base pour jouer : ",
             "`!help` : message d'aide avec la liste des commandes",
             "`!register [pseudo]` : s'enregistrer avec le pseudo donné",
+            "`!attack [pseudo du joueur]` : attaquer le joueur avec le pseudo donné",
+            "`!next-fights` : affiche la liste de nos combats en cours.",
+            "`pierre`, `feuille`, ou `ciseaux` : donner son choix au prochain combat",
+            "",
+            "",
+            "Liste des commandes en plus :",
+            "`!help` : message d'aide avec la liste des commandes",
             "`!players` : liste les noms des joueurs",
             "`!show-actifs` : Liste tous les joueurs actifs",
-            "`!attack [pseudo du joueur]` : attaquer le joueur avec le pseudo donné",
             "`!mystats` : voir mes statistiques",
             "`!current-fights` : liste les combats en cours",
             "`!ranking` : liste le classement des joueurs avec leurs points",
             "`!actif` : vous met en mode actif, vous pouvez être attaqué et attaquer à nouveau",
             "`!passif` : vous met en mode passif, vous ne pouvez plus attaquer et être attaqué",
             "`!cancel` : supprime le combat en cours, n'en abuse pas s'il te plaît.",
-            "`!next-fights` : affiche la liste de nos combats en cours."
             "",
             "PS : J'ai soif de boire https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTHHzo3NXvZN2D63gbYVvpzWJ9lyk4gC6v3mheuGX-XeOc-FRe5&s"
         ])
@@ -390,7 +430,7 @@ class GameManager:
             c_player = guild.get_member(player.idPlayer)
             print(c_player.status)
             if player.actif and c_player.status == discord.Status.online:
-                message += f"{player.name} :v:\n"
+                message += f"{player.name} avec {player.score} pts :v:\n"
         await utils.send_message(channel, message)
 
     async def nextFights(self, id_player, channel=None):
@@ -423,6 +463,32 @@ class GameManager:
 
         await utils.send_message(channel, message)
 
+    async def showPlayerStats(self, name, channel=None):
+        '''
+            name : nom du joueur
+        '''
+        # Récupérer le joueur
+        player = self.dataManager.getPlayerByName(name)
+
+        # Est-ce que le joueur existe ?
+        if player is None:
+            raise exceptions.Player2DoesNotExist(name)
+            
+        # Afficher les stats
+        # Retourner les stats du joueur
+        actif_message = "actif" if player.actif else "passif"
+        message = "\n".join([
+            f"Statistiques de **{name}** : ",
+            f"win : {player.nbWin}",
+            f"loose : {player.nbLoose}",
+            f"Wins consécutives MAX : {player.nbWinConsMax}",
+            f"Looses consécutives MAX: {player.nbLooseConsMax}",
+            f"score : {player.score}",
+            f"état du compte : {actif_message}",
+        ])
+        await utils.send_message(channel, message)
+
+        
 
     # Utils
     def fightIsFinished(self, fight):
