@@ -116,7 +116,7 @@ async def on_message(message):
                                 await gameManager.attack(message.author.id, player2.idPlayer, client)
                             gameManager.save_game()
                         elif len(splited) == 1:
-                            await gameManager.attackRandomPlayer(message.author.id, client)
+                            await gameManager.attackRandomPlayer(message.author.id, client, system["guild"])
 
 
                 # Current fights

@@ -17,8 +17,9 @@ TODO :
 - Quand tu te register : Pour afficher la liste des persos, fais !show-actifs, pour jouer, fais !attack [nom joueur] -- DONE
 
 - Afficher les stats d'un joueur -- DONE
-- attack-random : attaque aléatoirement un joueur actif
+- attack-random : attaque aléatoirement un joueur actif -- DONE
 
+- à régler : problème d'attaque aléatoire => vérifier que les utilisateurs soient bien actifs.
 
 
 - Achievements (avec des bages/emojis et un TAG)

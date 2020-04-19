@@ -98,7 +98,7 @@ class GameManager:
         else:
             await utils.send_direct_message(c_player1, f"[{player1.getNbReceiveFights()}] Tu as déjà envoyé un duel.")
     
-    async def attackRandomPlayer(self, id_player, client):
+    async def attackRandomPlayer(self, id_player, client, guild):
 
         # Récupérer le player
         player = self.dataManager.getPlayerById(id_player)
@@ -107,9 +107,9 @@ class GameManager:
         if player is None:
             raise exceptions.PlayerNotRegistered()
         
+        
         # Choisir un joueur aléatoirement
-        players = self.dataManager.players.copy()
-        players.remove(player)
+        players = [player_ for player_ in self.dataManager.players.copy() if player_.actif and guild.get_member(player_.idPlayer).status == discord.Status.online and player_ is not player]
         player2 = choice(players)
 
         # On crée le fight
