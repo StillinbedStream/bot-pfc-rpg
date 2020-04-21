@@ -2,6 +2,7 @@
 
 import pickle
 import exceptions
+import messages
 
 # -- Entities
 class Entity:
@@ -172,15 +173,6 @@ class Player(Entity):
 
 class Fight(Entity):
     def __init__(self, idFight, player1, player2):
-        '''
-            Initialise le combat. Il vérifie aussi que les joueurs ne soient pas
-            déjà en combat via la propriété inFight.
-        '''
-
-        # Vérifie que le joueur 1 n'ait pas déjà attaqué quelqu'un
-        if player1.sentFight is not None:
-            raise exceptions.AlreadySentFight(player1.sentFight)
-        
         player1.sentFight = self
         player2.addReceiveFight(self)
 
@@ -287,6 +279,40 @@ class Fight(Entity):
     def alreadyVote(self, player):
         return (self.player1.idPlayer == player.idPlayer and self.actionPlayer1 is not None) or (self.player2.idPlayer == player.idPlayer and self.actionPlayer2 is not None)
 
+    def computeWinner(self):
+        act1 = self.actionPlayer1
+        act2 = self.actionPlayer2
+        key_idj = self.player1.idPlayer
+        key_idj2 = self.player2.idPlayer
+        winner = None
+        if act1.lower() == "feuille".lower():
+            if act2.lower() == "feuille".lower():
+                winner = None
+            elif act2.lower() == "ciseaux".lower():
+                winner = key_idj2
+            else:
+                winner = key_idj
+        
+        if act1.lower() == "ciseaux".lower():
+            if act2.lower() == "ciseaux".lower():
+                winner = None
+            elif act2.lower() == "pierre".lower():
+                winner = key_idj2
+            else:
+                winner = key_idj
+
+
+        if act1.lower() == "pierre".lower():
+            if act2.lower() == "pierre".lower():
+                winner = None
+            elif act2.lower() == "feuille".lower():
+                winner = key_idj2
+            else:
+                winner = key_idj
+        return winner
+
+    def isFinished(self):
+        return not (self.actionPlayer1 is None or self.actionPlayer2 is None)
 
 # -- DATA MANAGER
 class DataManager():
@@ -355,8 +381,9 @@ class DataManager():
         player = Player()
         player.idPlayer = id_player
         player.name = name
-        self.addPlayer(player)
+        message = self.addPlayer(player)
         self.syncRanking()
+        return message
     
     def addPlayer(self, player):
         '''
@@ -364,17 +391,18 @@ class DataManager():
         '''
         # Vérifier que le joueur existe pas déjà
         if player.idPlayer in self.__players:
-            raise  exceptions.PlayerAlreadyRegistered(player)
+            return messages.PlayerAlreadyRegistered(player)
         
         # Vérifier que le nom du joueur n'est pas déjà prix
         if player.name in self.__players_ind_name:
-            raise exceptions.NameExists(player.name)
+            return messages.NameExists(player.name)
         
         # Ajouter le joueur dans le tableau et dans les index
         self.__players.append(player)
         self.__players_indexed[player.idPlayer] = player
         self.__players_ind_name[player.name] = player
-    
+        return None
+
     def getListNamePlayers(self):
         '''
             Retourne une liste avec les noms de tous les joueurs

@@ -1,5 +1,6 @@
 
 import utils
+import messages
 
 class WallOfPFC:
     
@@ -16,20 +17,31 @@ class WallOfPFC:
 
         # Si le winner a 5 victoires consécutives
         if fight.winner.nbWinCons == 5:
-            await utils.send_message(self.__channel, f"<@!{fight.winner.idPlayer}> {fight.winner.name} a gagné 5 parties consécutives ! :raised_hands:")
+            message = messages.Message()
+            message.content = f"<@!{fight.winner.idPlayer}> {fight.winner.name} a gagné 5 parties consécutives ! :raised_hands:"
+            message.channel = self.__channel
+            await messages.send_message(message)
         
         # Si le looser a 5 défaites consécutives
         if fight.looser.nbLooseCons == 5:
-            await utils.send_message(self.__channel, f"<@!{fight.looser.idPlayer}> {fight.looser.name} a perdu 5 parties consécutives ! :thumbsdown:")
+            message = messages.Message()
+            message.content = f"<@!{fight.looser.idPlayer}> {fight.looser.name} a perdu 5 parties consécutives ! :thumbsdown:"
+            message.channel = self.__channel
+            await messages.send_message(message)
         
         # Si c'est notre première victoire 
         if fight.winner.nbWin == 1:
-            await utils.send_message(self.__channel, f"<@!{fight.winner.idPlayer}> {fight.winner.name} a gagné sa première victoire ! :baby:")
+            message = messages.Message()
+            message.content = f"<@!{fight.winner.idPlayer}> {fight.winner.name} a gagné sa première victoire ! :baby:"
+            message.channel = self.__channel
+            await messages.send_message(message)
         
         # Si on atteind un certain nombre de wins:
         for tier in self.__tiers:
             if fight.winner.nbWin == tier:
-                await utils.send_message(self.__channel, f"<@!{fight.winner.idPlayer}> {fight.winner.name} a atteind {tier} victoires ! :stillinkawai: :muscle:")
+                message = messages.Message()
+                message.content = f"<@!{fight.winner.idPlayer}> {fight.winner.name} a atteind {tier} victoires ! :stillinkawai: :muscle:"
+                await messages.send_message(message)
         
         # TODO: Si quelqu'un a perdu plus de X fois contre quelqu'un d'autres
 

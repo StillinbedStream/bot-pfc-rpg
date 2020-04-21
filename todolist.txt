@@ -15,12 +15,16 @@ TODO :
 - afficher le message à Player 2 quand on annule son combat -- DONE 
 - Mettre les scores à côté des noms des players(show-actifs) -- DONE
 - Quand tu te register : Pour afficher la liste des persos, fais !show-actifs, pour jouer, fais !attack [nom joueur] -- DONE
-
 - Afficher les stats d'un joueur -- DONE
 - attack-random : attaque aléatoirement un joueur actif -- DONE
 
+- Faire des embeds
+
 - à régler : problème d'attaque aléatoire => vérifier que les utilisateurs soient bien actifs.
 
+- Passer l'encadré à 10 secondes
+- Système qui fait gagner plus de points si on attaque quelqu'un d'un score proche (ou lvl)
+ou, plus tu es haut, moins tu gagnes (ou elo)
 
 - Achievements (avec des bages/emojis et un TAG)
 - Factions (emoji au pseudo)
