@@ -10,6 +10,7 @@ from discord.ext import commands
 from dotenv import load_dotenv
 from engine import GameManager
 
+from discord.ext import commands
 
 
 # TODO: - Système de connexion données - Tester les fonctionnalités
@@ -22,146 +23,220 @@ WALL_OF_EPICNESS = os.getenv('WALL_OF_EPICNESS')
 GUILD_ID = int(os.getenv("GUILD_ID"))
 
 # Préparation client et variables
-client = discord.Client()
+bot = commands.Bot(command_prefix="!")
+
+
+
+
 system = {
     "gameManager": None
 }
 
-
-@client.event
+# -- ON READY
+@bot.event
 async def on_ready():
-    print(f'{client.user} has connected to Discord!')
+    print(f'{bot.user} has connected to Discord!')
     # Une fois qu'on est co, on crée le jeu
-    wall_of_epicness_channel = client.get_channel(int(WALL_OF_EPICNESS))
+    wall_of_epicness_channel = bot.get_channel(int(WALL_OF_EPICNESS))
     if wall_of_epicness_channel is None:
         raise Exception("On n'a pas trouvé le channel wall of PFC")
 
-    gameManager = GameManager(wall.WallOfPFC(wall_of_epicness_channel), client, client.get_guild(GUILD_ID))
+    gameManager = GameManager(wall.WallOfPFC(wall_of_epicness_channel), bot, bot.get_guild(GUILD_ID))
     gameManager.load_game()
     system["gameManager"] = gameManager
 
-@client.event
+
+
+
+
+
+
+
+# -- COMMANDS
+@bot.command(name='quit')
+@commands.dm_only()
+async def quit(ctx):
+    message = ctx.message
+    if message.author.id == 143773155549380608:
+        await bot.close()
+
+@bot.command(name='init-fights')
+@commands.dm_only()
+async def init_fights(ctx):
+    gameManager = system["gameManager"]
+    message = ctx.message
+    if message.author.id == 143773155549380608:
+        await gameManager.initFights(message.channel)
+        gameManager.save_game()
+
+@bot.command(name='change-name')
+@commands.dm_only()
+async def change_name(ctx, name: str, new_name: str):
+    gameManager = system["gameManager"]
+    message = ctx.message
+    if message.author.id == 143773155549380608:
+        await gameManager.changeName(name, new_name, message.channel)
+
+# Liste des joueurs
+@bot.command(name='players')
+@commands.dm_only()
+async def list_players(ctx):
+    gameManager = system["gameManager"]
+    message = ctx.message
+    await gameManager.listPlayers(message.channel)
+    gameManager.save_game()
+
+
+# Enregistrement d'un joueur
+@bot.command(name='register')
+@commands.dm_only()
+async def register(ctx, name: str):
+    gameManager = system["gameManager"]
+    message = ctx.message
+    await gameManager.register(message.author.id, name, message.channel)
+    gameManager.save_game()
+
+
+
+@bot.command(name='attack')
+@commands.dm_only()
+async def attack(ctx, name_player2: str):
+    # Attaque
+    gameManager = system["gameManager"]
+    message = ctx.message
+    player2 = gameManager.dataManager.getPlayerByName(name_player2)
+    if player2 == None:
+        await message.channel.send(f"Le joueur {name_player2} n'existe pas, comme ton charisme ! https://gifimage.net/wp-content/uploads/2017/08/popopo-gif-1.gif")
+    else:
+        await gameManager.attack(message.author.id, player2.idPlayer)
+    gameManager.save_game()
+    #elif len(splited) == 1:
+    #await gameManager.attackRandomPlayer(message.author.id, message.channel)
+
+
+
+# Current fights
+@bot.command(name='current-fights')
+@commands.dm_only()
+async def current_fights(ctx):
+    gameManager = system["gameManager"]
+    message = ctx.message
+    await gameManager.listCurrentFights(message.channel)
+
+
+@bot.command(name='mystats')
+@commands.dm_only()
+async def mystats(ctx):
+    gameManager = system["gameManager"]
+    message = ctx.message
+    await gameManager.mystats(message.author.id, message.channel)
+
+
+@bot.command(name='ranking')
+@commands.dm_only()
+async def ranking(ctx):
+    gameManager = system["gameManager"]
+    message = ctx.message
+    await gameManager.listRanking(message.channel)
+
+
+@bot.command(name='passif')
+@commands.dm_only()
+async def passif(ctx):
+    gameManager = system["gameManager"]
+    message = ctx.message
+    await gameManager.becomePassif(message.author.id, message.channel)
+    gameManager.save_game()
+
+
+
+@bot.command(name='actif')
+@commands.dm_only()
+async def actif(ctx):
+    gameManager = system["gameManager"]
+    message = ctx.message
+    await gameManager.becomeActif(message.author.id, message.channel)
+    gameManager.save_game()
+
+
+@bot.command(name='cancel')
+@commands.dm_only()
+async def cancel(ctx):
+    gameManager = system["gameManager"]
+    message = ctx.message
+    await gameManager.cancelFight(message.author.id, message.channel)
+    gameManager.save_game()
+
+@bot.command(name='show-actifs')
+@commands.dm_only()
+async def show_actifs(ctx):
+    gameManager = system["gameManager"]
+    message = ctx.message
+    await gameManager.showActifs(message.channel)
+    gameManager.save_game()
+
+
+@bot.command(name='myfights')
+@commands.dm_only()
+async def myfights(ctx):
+    gameManager = system["gameManager"]
+    message = ctx.message
+    await gameManager.nextFights(message.author.id, message.channel)
+    
+
+@bot.command(name='show-stats')
+@commands.dm_only()
+async def showStats(ctx):
+    gameManager = system["gameManager"]
+    message = ctx.message
+    splited = message.content.split(" ")
+    if len(splited) > 1:
+        name_player2 = splited[1]
+        await gameManager.showPlayerStats(name_player2, message.channel)
+
+#@bot.command(name='help')
+# @commands.dm_only()
+# async def help(ctx):
+#     gameManager = system["gameManager"]
+#     message = ctx.message
+#     await gameManager.help(message.channel)
+
+
+
+# !quit command
+            
+
+@bot.event
 async def on_disconnect():
     print("Déconnexion du BOT")
     gameManager = system["gameManager"]
     gameManager.save_game()
 
-@client.event
+@bot.event
 async def on_message(message):
     lock = asyncio.Lock()
-
     async with lock:
         gameManager = system["gameManager"]
-        if message.author == client.user:
+        if message.author == bot.user:
             return
 
         # Dans le cas où on est dans un MP (DM)
         if isinstance(message.channel, discord.DMChannel):
-
-            # !quit command
-            if message.content == "!quit" and message.author.id == 143773155549380608:
-                await client.close()
-
-            # !quit command
-            if message.content == "!init-fights" and message.author.id == 143773155549380608:
-                await gameManager.initFights(message.channel)
-                gameManager.save_game()
-                
-            # !rename player command
-            if message.content.startswith("!change-name") and message.author.id == 143773155549380608:
-                splited = message.content.split(" ")
-                if splited[0] == "!change-name" and len(splited) > 2:
-                    name = splited[1]
-                    new_name = splited[2]
-                    await gameManager.changeName(name, new_name, message.channel)
-                    gameManager.save_game()
-
-
             # choose action
             if message.content.lower() in ["pierre", "feuille", "ciseaux"]:
-                await gameManager.actionPlayer(message.author.id, message.content, message.channel, client)
-                gameManager.save_game()
+                await gameManager.actionPlayer(message.author.id, message.content, message.channel)
+                return gameManager.save_game()
 
-            # Enregistrement d'un joueur
-            if message.content.startswith("!register"):
-                splited = message.content.split(" ")
-                if splited[0] == "!register":
-                    if len(splited) > 1:
-                        name = splited[1]
-                        await gameManager.register(message.author.id, name, message.channel)
-                    else:
-                        await message.channel.send("Il faut écrire !register [mon pseudo] imbécile ! (sans le imbécile, imbécile)")
-                    gameManager.save_game()
-
-                    
-                
-            # Liste des joueurs
-            if message.content == "!players":
-                await gameManager.listPlayers(message.channel)
-                gameManager.save_game()
-                
-
-            # Attaque
-            if message.content.startswith("!attack"):
-                splited = message.content.split(" ")
-                if splited[0] == "!attack":
-                    if len(splited) > 1:
-                        name_player2 = splited[1]
-                        player2 = gameManager.dataManager.getPlayerByName(name_player2)
-                        if player2 == None:
-                            await message.channel.send(f"Le joueur {name_player2} n'existe pas, comme ton charisme ! https://gifimage.net/wp-content/uploads/2017/08/popopo-gif-1.gif")
-                        else:
-                            await gameManager.attack(message.author.id, player2.idPlayer, client)
-                        gameManager.save_game()
-                    elif len(splited) == 1:
-                        await gameManager.attackRandomPlayer(message.author.id, message.channel)
+            if message.content == "!test":
+                embed = discord.Embed()
+                embed.title = "Simple test !"
+                embed.type = "rich"
+                embed.description = "Un petite description"
+                embed.add_field(name="Message", value="Enregistrements", inline=True)
+                embed.add_field(name="Function", value="Des trucs de ouf", inline=True)
+                embed.add_field(name="Message", value="Enregistrements", inline=False)
+                return await message.channel.send(embed=embed)
+        await bot.process_commands(message)
 
 
-            # Current fights
-            if message.content == "!current-fights":
-                await gameManager.listCurrentFights(message.channel)
-        
-            # Mes statistiques
-            if message.content == "!mystats":
-                await gameManager.mystats(message.author.id, message.channel)
-
-            # Classement
-            if message.content == "!ranking":
-                await gameManager.listRanking(message.channel)
-                
-            # Devenir passif
-            if message.content == "!passif":
-                await gameManager.becomePassif(message.author.id, message.channel)
-                gameManager.save_game()
-                
-            # Devenir actif
-            if message.content == "!actif":
-                await gameManager.becomeActif(message.author.id, message.channel)
-                gameManager.save_game()
-
-            # Arrêter son combat
-            if message.content == "!cancel":
-                await gameManager.cancelFight(message.author.id, client, message.channel)
-                gameManager.save_game()
-                
-            # Montrer les actifs
-            if message.content == "!show-actifs":
-                await gameManager.showActifs(message.channel)
-
-            if message.content == "!next-fights":
-                await gameManager.nextFights(message.author.id, message.channel)
-                
-            # if message.content == "!stats-with":
-            #     await gameManager.statsWith()
-            # Message d'aide
-
-            if message.content.startswith("!show-stats "):
-                splited = message.content.split(" ")
-                if len(splited) > 1:
-                    name_player2 = splited[1]
-                    await gameManager.showPlayerStats(name_player2, message.channel)
-
-                
-            if message.content == "!help":
-                await gameManager.help(message.channel)
-client.run(TOKEN)
+bot.run(TOKEN)

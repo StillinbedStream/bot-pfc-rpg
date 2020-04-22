@@ -9,7 +9,7 @@ async def send_message(message, channel=None):
             raise exceptions.channelUndefined()
         else:
             message.channel = channel
-    await message.channel.send(message.content)
+    await message.channel.send(message.content, embed=message.embed)
 
 # Classe mère des messages
 class Message(discord.Message):
@@ -20,10 +20,12 @@ class Message(discord.Message):
     '''
     __content = ""
     __channel = None
+    __embed = None
 
     def __init__(self):
         self.__content = ""
         self.__channel = None
+        self.__embed = None
     
     @property
     def content(self):
@@ -40,6 +42,14 @@ class Message(discord.Message):
     @channel.setter
     def channel(self, channel):
         self.__channel = channel
+    
+    @property
+    def embed(self):
+        return self.__embed
+    
+    @embed.setter
+    def embed(self, embed):
+        self.__embed = embed
     
     async def direct_message(self, user):
         '''
@@ -132,16 +142,6 @@ class Player2DoesNotExist(Message):
         self.content = f"Le joueur {name} n'existe pas"
         self.channel = channel
 
-class AlreadyVote(Message):
-    def __init__(self, channel=None):
-        self.content = "Tu as déjà voté !"
-        self.channel = channel
-
-class AlreadyVotedAll(Message):
-    def __init__(self, channel=None):
-        self.content = "Tu as déjà voté pour tous les duels en cours !"
-        self.channel = channel
-
 class AlreadyPassif(Message):
     def __init__(self, channel=None):
         self.content = "T'es déjà passif ! https://thumbs.gfycat.com/PoliteClearBlackfish-size_restricted.gif"
@@ -167,23 +167,42 @@ class BugDiscordCommunication(Message):
         self.content = "Il y a eu un bug, ce n'est pas possible d'atteindre le joueur 2. Contacte l'admin stp. Tu sais, le big boss."
         self.channel = channel
 
+
+
+# Register player
+class RegisterDone(Message):
+    def __init__(self, channel):
+        self.content = "\n".join([
+            "Enregistrement DONE. Welcome to the trigone ! Que la triforce soit avec toi !",
+            "Dans un premier temps affiche la liste des joueurs actifs avec la commande : !show-actifs",
+            "Tu peux ensuite attaquer qui tu veux avec la commande : !attack [pseudo]",
+            "Pour ne plus subir d'attaques, utilises la commande : !passif"
+        ])
+        self.channel = channel
+
+
+# Show stats
 class MyStats(Message):
     def __init__(self, player, channel=None):
-        self.channel = channel
+        self.embed = discord.Embed()
+        self.embed.title = f"Vos stats {player.name}"
+
         actif_message = "actif" if player.actif else "passif"
         in_fight_message = "non" if player.sentFight is None else "oui"
-        self.content = "\n".join([
-            f"Vos stats {player.name}",
-            f"win : {player.nbWin}",
-            f"loose : {player.nbLoose}",
-            f"Wins consécutives : {player.nbWinCons}",
-            f"Looses consécutives : {player.nbLooseCons}",
-            f"Wins consécutives MAX : {player.nbWinConsMax}",
-            f"Looses consécutives MAX: {player.nbLooseConsMax}",
-            f"score : {player.score}",
-            f"état du compte : {actif_message}",
-            f"combat envoyé ? : {in_fight_message}"
-        ])
+
+        self.embed.add_field(name="actif", value=actif_message, inline=True)
+        self.embed.add_field(name="en combat ?", value=in_fight_message, inline=True)
+        self.embed.add_field(name="**score**", value=f"**{player.score}**", inline=True)
+
+        self.embed.add_field(name="wins", value=f"{player.nbWin}", inline=True)
+        self.embed.add_field(name="wins cons", value=f"{player.nbWinCons}", inline=True)
+        self.embed.add_field(name="wins cons max", value=f"{player.nbWinConsMax}", inline=True)
+
+        self.embed.add_field(name="looses", value=f"{player.nbLoose}", inline=True)
+        self.embed.add_field(name="looses cons", value=f"{player.nbLooseCons}", inline=True)
+        self.embed.add_field(name="looses cons max", value=f"{player.nbLooseConsMax}", inline=True)
+
+        self.channel = channel
 
 class PlayerStats(Message):
     def __init__(self, player, channel=None):
@@ -200,6 +219,7 @@ class PlayerStats(Message):
         self.content = message
         self.channel = channel
 
+# Fight messages
 class Equality(Message):
     def __init__(self, player1, player2, channel=None):
         self.content = f"[{player1.getNbReceiveFights()}] Il y a eu égalité avec **{player2.name}** ! Rejouez."
@@ -228,6 +248,18 @@ class ActionReceived(Message):
         self.content = f"[{player.getNbReceiveFights()}] Nous avons bien reçu votre action"
         self.channel = channel
 
+class AlreadyVote(Message):
+    def __init__(self, channel=None):
+        self.content = "Tu as déjà voté !"
+        self.channel = channel
+
+class AlreadyVotedAll(Message):
+    def __init__(self, channel=None):
+        self.content = "Tu as déjà voté pour tous les duels en cours !"
+        self.channel = channel
+
+
+# List commands
 class ListPlayers(Message):
     def __init__(self, players, channel=None):
         message = "Liste des joueurs : \n"
@@ -250,6 +282,8 @@ class ListCurrentFights(Message):
         self.content = message
         self.channel = channel
 
+
+# Passif or Actif
 class BecomePassif(Message):
     def __init__(self, channel=None):
         self.content = "Tu es bien passé en mode passif ! Utilises la commande !actif pour redevenir attaquable. https://thumbs.gfycat.com/PoliteClearBlackfish-size_restricted.gif"
@@ -260,6 +294,8 @@ class BecomeActif(Message):
         self.content = "Tu es bien passé en mode actif ! Utilises la commande !passif pour ne plus être attaqué. https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSR5olQJ0iCPut7COcWGoAePC36usg_uE3O8xCYcnp03EPuFz4f9w&s"
         self.channel = channel
 
+
+# Cancel
 class FightCanceledByPlayer1(Message):
     def __init__(self, player, channel=None):
         self.content = f"Le combat avec {player.name} a été annulé."
@@ -268,16 +304,6 @@ class FightCanceledByPlayer1(Message):
 class FightCanceled(Message):
     def __init__(self, channel=None):
         self.content = "On a bien supprimé ton combat ! Retourne te battre moussaillon ! https://media.giphy.com/media/ihMKNwb2yPEbWJiAmn/giphy.gif"
-        self.channel = channel
-
-class NameChanged(Message):
-    def __init__(self, name, new_name, channel=None):
-        self.content = f"Le nom du joueur {name} a bien été remplacé par {new_name}"
-        self.channel = channel
-
-class FightsInit(Message):
-    def __init__(self, channel=None):
-        self.content = "Les combats sont bien réinitialisés !"
         self.channel = channel
 
 class Help(Message):
@@ -347,13 +373,14 @@ class NextFights(Message):
         self.content = message
         self.channel = channel
 
-class RegisterDone(Message):
-    def __init__(self, channel):
-        "\n".join([
-            "Enregistrement DONE. Welcome to the trigone ! Que la triforce soit avec toi !",
-            "Dans un premier temps affiche la liste des joueurs actifs avec la commande : !show-actifs",
-            "Tu peux ensuite attaquer qui tu veux avec la commande : !attack [pseudo]",
-            "Pour ne plus subir d'attaques, utilises la commande : !passif"
-        ])
+# Admin messages
+class NameChanged(Message):
+    def __init__(self, name, new_name, channel=None):
+        self.content = f"Le nom du joueur {name} a bien été remplacé par {new_name}"
+        self.channel = channel
 
+class FightsInit(Message):
+    def __init__(self, channel=None):
+        self.content = "Les combats sont bien réinitialisés !"
+        self.channel = channel
 

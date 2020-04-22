@@ -6,6 +6,12 @@ POUR TESTER LE BOT DISCORD :
 - !help 
 ----------------------------------------
 
+
+TODO à faire rapidement : 
+- un truc qui permet de load un embed en json pour gérer mes messages.
+- Il faut que je réfléchisse à un meilleur système de message.
+
+
 FIRST GAME : 
 !show-actifs
 !attack [Nom du joueur]

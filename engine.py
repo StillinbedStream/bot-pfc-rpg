@@ -117,7 +117,7 @@ class GameManager:
 
         await messages.send_message(messages.MyStats(player), channel)
 
-    async def actionPlayer(self, id_player, action, channel=None, client=None):
+    async def actionPlayer(self, id_player, action, channel=None):
         '''
         Réaliser l'action 'pierre' 'feuille' ou 'ciseaux' du joueur
         dans son combat.
@@ -157,13 +157,13 @@ class GameManager:
 
         # Créer le DM de Joueur 1
         c_player2 = None
-        if client is not None:
-            c_player2 = client.get_user(player2.idPlayer)
+        if self.__client is not None:
+            c_player2 = self.__client.get_user(player2.idPlayer)
         
         # Créer le DM de Joueur 2
         c_player1 = None
-        if client is not None:
-            c_player1 = client.get_user(player1.idPlayer)
+        if self.__client is not None:
+            c_player1 = self.__client.get_user(player1.idPlayer)
         
         
         # Match terminé maintenant ?
@@ -282,7 +282,7 @@ class GameManager:
         else:
             return await send_message(messages.AlreadyActif(channel))
 
-    async def cancelFight(self, id_player, client=None, channel=None):
+    async def cancelFight(self, id_player, channel=None):
         '''
         '''
         # Récupérer le joueur
@@ -297,8 +297,8 @@ class GameManager:
             return await send_message(messages.PlayerHasNotSentFight(channel))
         
         # Est-ce que le player 2 existe dans le discord ?
-        if client is not None:
-            c_player2 = client.get_user(player.sentFight.player2.idPlayer)
+        if self.__client is not None:
+            c_player2 = self.__client.get_user(player.sentFight.player2.idPlayer)
             if c_player2 is None:
                 return await send_message(messages.BugDiscordCommunication())
         
