@@ -94,7 +94,7 @@ class PlayerAlreadyRegistered(Message):
 
 class SentInvite(Message):
     def __init__(self, player1, player2, channel=None):
-        self.content = f"[{player1.getNbReceiveFights()}] {player2.name} a reçu l'invitation"
+        self.content = f"[{player1.getNbReceivedFights()}] {player2.name} a reçu l'invitation"
         self.channel = channel
 
 class DoTheChoice(Message):
@@ -104,7 +104,7 @@ class DoTheChoice(Message):
 
 class YouAreAttacked(Message):
     def __init__(self, player1, player2, channel=None):
-        self.content = f"[{player2.getNbReceiveFights()}] **{player1.name}** vous a défié"
+        self.content = f"[{player2.getNbReceivedFights()}] **{player1.name}** vous a défié"
         self.channel = channel
 
 class NameExists(Message):
@@ -167,6 +167,23 @@ class BugDiscordCommunication(Message):
         self.content = "Il y a eu un bug, ce n'est pas possible d'atteindre le joueur 2. Contacte l'admin stp. Tu sais, le big boss."
         self.channel = channel
 
+class TokenReceived(Message):
+    def __init__(self, sender, channel=None):
+        # envoyer le message disant que l'on a reçu un token du joueur "sender"
+        self.content=f"Vous avez reçu un token de {sender.name}"
+        self.channel = channel
+
+class TokenSent(Message):
+    def __init__(self, receiver, channel=None):
+        # envoyer le message disant que l'on a bien envoyé un token au joueur "receiver"
+        self.content=f"Le token a bien été envoyé au joueur {receiver.name}"
+        self.channel = channel
+
+class TokenNotSentCauseNegativeScore(Message):
+    def __init__(self, channel=None):
+        # envoyer le message disant que l'on a bien envoyé un token au joueur "receiver"
+        self.content=f"Le token n'a pas été envoyé parce que l'un des deux joueurs aurait un score trop faible (<0)"
+        self.channel = channel
 
 
 # Register player
@@ -222,30 +239,30 @@ class PlayerStats(Message):
 # Fight messages
 class Equality(Message):
     def __init__(self, player1, player2, channel=None):
-        self.content = f"[{player1.getNbReceiveFights()}] Il y a eu égalité avec **{player2.name}** ! Rejouez."
+        self.content = f"[{player1.getNbReceivedFights()}] Il y a eu égalité avec **{player2.name}** ! Rejouez."
         self.channel = channel
 
 class WinMessage(Message):
     def __init__(self, winner, looser, channel=None):
-        self.content = f"[{winner.getNbReceiveFights()}] Vous avez vaincu **{looser.name}** !"
+        self.content = f"[{winner.getNbReceivedFights()}] Vous avez vaincu **{looser.name}** !"
         self.channel = channel
 
 class LooseMessage(Message):
     def __init__(self, winner, looser, channel=None):
-        self.content = f"[{looser.getNbReceiveFights()}] Vous avez perdu contre le joueur {winner.name} !"
+        self.content = f"[{looser.getNbReceivedFights()}] Vous avez perdu contre le joueur {winner.name} !"
         self.channel = channel
 
 class PlayerMadeChoice(Message):
     '''
-        "[{player2.getNbReceiveFights()}] **{player1.name}** a fait son choix"
+        "[{player2.getNbReceivedFights()}] **{player1.name}** a fait son choix"
     '''
     def __init__(self, player1, player2, channel=None):
-        self.content = f"[{player2.getNbReceiveFights()}] **{player1.name}** a fait son choix"
+        self.content = f"[{player2.getNbReceivedFights()}] **{player1.name}** a fait son choix"
         self.channel = channel
 
 class ActionReceived(Message):
     def __init__(self, player, channel=None):
-        self.content = f"[{player.getNbReceiveFights()}] Nous avons bien reçu votre action"
+        self.content = f"[{player.getNbReceivedFights()}] Nous avons bien reçu votre action"
         self.channel = channel
 
 class AlreadyVote(Message):
@@ -362,15 +379,35 @@ class NextFights(Message):
                 
         
         message += "\nCombats reçus :\n"
-        if len(player.receiveFights) == 0:
+        if len(player.receivedFights) == 0:
             message += "Il n'y a pas de combats"
-        for i, fight in enumerate(player.receiveFights):
+        for i, fight in enumerate(player.receivedFights):
             message += f"[{i}] {fight.player1.name} "
             if fight.alreadyVote(player):
                 message += ":ok_hand:"
             message += "\n"
 
         self.content = message
+        self.channel = channel
+
+class ShowActifs(Message):
+    def __init__(self, players, guild, channel):
+        self.embed = discord.Embed()
+        self.embed.title = f"Liste des actifs"
+        self.embed.description = ""
+        for player in players:
+            c_player = guild.get_member(player.idPlayer)
+            if player.actif and c_player.status == discord.Status.online:
+                self.embed.add_field(name="name", value=player.name, inline=True)
+                self.embed.add_field(name="statut", value=f"{player.score} pts", inline=True)
+                self.embed.add_field(name="\u200b", value="\u200b", inline=True)
+                #self.embed.description += f"{player.name} avec  :v:\n"
+        
+        self.channel = channel
+
+class Provoc(Message):
+    def __init__(self, provoc, channel = None):
+        self.content = provoc
         self.channel = channel
 
 # Admin messages

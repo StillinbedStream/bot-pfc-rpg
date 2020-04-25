@@ -10,6 +10,7 @@ from data import DataManager
 import messages
 import exceptions
 from messages import send_message
+import json
 
 # -- GAME MANAGER
 class GameManager:
@@ -19,6 +20,7 @@ class GameManager:
     
 
     PICKLE_FILE = "data.cornichon"
+    DATA_FILE = "data.cornichon.json"
 
     def __init__(self, wallOfPFC, client=None, guild=None):
         self.__dataManager = DataManager()
@@ -48,10 +50,13 @@ class GameManager:
 
         message = self.__dataManager.createPlayer(id_joueur, name)
 
-        if message is not None:
+        if message is None:
             return await send_message(messages.RegisterDone(channel))
+        else:
+            message.channel = channel
+            await send_message(message)
 
-    async def attack(self, id_joueur1, id_joueur2, channel=None):
+    async def attack(self, id_joueur1, id_joueur2, provoc, channel=None):
         '''
         Attaquer un joueur
         '''
@@ -94,6 +99,8 @@ class GameManager:
             self.dataManager.createFight(player1, player2)
             await send_message(await messages.SentInvite(player1, player2).direct_message(c_player1))
             await send_message(await messages.DoTheChoice().direct_message(c_player1))
+            if provoc != "":
+                await send_message(await messages.Provoc(provoc).direct_message(c_player2))
             await send_message(await messages.YouAreAttacked(player1, player2).direct_message(c_player2))
             await send_message(await messages.DoTheChoice().direct_message(c_player2))
         else:
@@ -133,7 +140,7 @@ class GameManager:
         if (player.sentFight is not None) and (not player.sentFight.alreadyVote(player)):
             fight = player.sentFight
         else:
-            fight = player.getCurrentReceiveFight()
+            fight = player.getCurrentReceivedFight()
         
         # Si on a déjà fait des choix partout
         if fight is None:
@@ -351,7 +358,7 @@ class GameManager:
             if player.actif and c_player.status == discord.Status.online:
                 message.content += f"{player.name} avec {player.score} pts :v:\n"
         message.channel = channel
-        await send_message(message)
+        await send_message(messages.ShowActifs(self.dataManager.players, self.__guild, channel))
 
     async def nextFights(self, id_player, channel=None):
         # Récupérer le player
@@ -376,22 +383,63 @@ class GameManager:
         
         await send_message(messages.PlayerStats(player, channel))
 
+    async def s0command(self, id_player, name_player2, channel=None):
+
+        # Est-ce que le joueur 1 existe ?
+        player1 = self.dataManager.getPlayerById(id_player)
+
+        # Est-ce que le joueur 1 existe ?
+        if player1 is None:
+            return await send_message(messages.Player2DoesNotExist)
+
+        # Chercher le joueur 2
+        player2 = self.dataManager.getPlayerByName(name_player2)
+
+        # Est-ce que le joueur 2 existe ?
+        if player2 is None:
+            return await send_message(messages.PlayerNotRegistered)
+
+        # On ajoute les tokens
+        player1.sentTokens += 1
+        player2.receivedTokens += 1
+
+        
+        # Créer le DM de Joueur 1
+        c_player2 = None
+        if self.__client is not None:
+            c_player2 = self.__client.get_user(player2.idPlayer)
+        
+        # Créer le DM de Joueur 2
+        c_player1 = None
+        if self.__client is not None:
+            c_player1 = self.__client.get_user(player1.idPlayer)
+
+        # Vérifier que le score des joueurs ne puisse pas être négatif
+        if player1.score < 0 or player2.score < 0:
+            player1.sentTokens -= 1
+            player2.receivedTokens -= 1
+            await send_message(await messages.TokenNotSentCauseNegativeScore().direct_message(c_player1))
+        else:
+            await send_message(await messages.TokenSent(player2).direct_message(c_player1))
+            await send_message(await messages.TokenReceived(player1).direct_message(c_player2))
+        
+        self.dataManager.syncRanking()
+        
+        
+
     # Load and save methods
     def load_game(self):
         '''
         Charger les données du jeu
         '''
-        if os.path.isfile(self.PICKLE_FILE):
-            with open(self.PICKLE_FILE, "rb") as f:
-                print("Chargement des données")
-                self.__dataManager = pickle.load(f)
-        self.__dataManager.syncRanking()
+        if os.path.isfile(self.DATA_FILE):
+            self.dataManager.load_json(self.DATA_FILE)
+
         
     def save_game(self):
         '''
         Sauvegarde les données du jeu
         '''
-        print("sauvegarde des données")
-        with open(self.PICKLE_FILE, "wb") as f:
-            pickle.dump(self.__dataManager, f)
+        self.dataManager.save_json(self.DATA_FILE)
+
 

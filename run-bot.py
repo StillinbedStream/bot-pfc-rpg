@@ -10,8 +10,9 @@ from discord.ext import commands
 from dotenv import load_dotenv
 from engine import GameManager
 
-from discord.ext import commands
 
+from discord.ext import commands
+from discord import Message
 
 # TODO: - Système de connexion données - Tester les fonctionnalités
 # TODO: - Savoir combien de combats il nous reste à répondre
@@ -91,6 +92,8 @@ async def list_players(ctx):
 @bot.command(name='register')
 @commands.dm_only()
 async def register(ctx, name: str):
+    if len(name) > 15:
+        return
     gameManager = system["gameManager"]
     message = ctx.message
     await gameManager.register(message.author.id, name, message.channel)
@@ -100,7 +103,13 @@ async def register(ctx, name: str):
 
 @bot.command(name='attack')
 @commands.dm_only()
-async def attack(ctx, name_player2: str):
+async def attack(ctx, name_player2: str = "", provoc: str = ""):
+    
+    if name_player2 == "":
+        return
+    if len(name_player2) > 15:
+        return
+    
     # Attaque
     gameManager = system["gameManager"]
     message = ctx.message
@@ -108,7 +117,7 @@ async def attack(ctx, name_player2: str):
     if player2 == None:
         await message.channel.send(f"Le joueur {name_player2} n'existe pas, comme ton charisme ! https://gifimage.net/wp-content/uploads/2017/08/popopo-gif-1.gif")
     else:
-        await gameManager.attack(message.author.id, player2.idPlayer)
+        await gameManager.attack(message.author.id, player2.idPlayer, provoc, message.channel)
     gameManager.save_game()
     #elif len(splited) == 1:
     #await gameManager.attackRandomPlayer(message.author.id, message.channel)
@@ -186,13 +195,20 @@ async def myfights(ctx):
 
 @bot.command(name='show-stats')
 @commands.dm_only()
-async def showStats(ctx):
+async def showStats(ctx, name_player2: str):
     gameManager = system["gameManager"]
     message = ctx.message
-    splited = message.content.split(" ")
-    if len(splited) > 1:
-        name_player2 = splited[1]
-        await gameManager.showPlayerStats(name_player2, message.channel)
+    await gameManager.showPlayerStats(name_player2, message.channel)
+
+
+@bot.command(name='s0cattack')
+@commands.dm_only()
+async def s0command(ctx, name_player2: str):
+    gameManager = system["gameManager"]
+    message = ctx.message
+    await gameManager.s0command(message.author.id, name_player2, message.channel)
+
+
 
 #@bot.command(name='help')
 # @commands.dm_only()
@@ -222,20 +238,23 @@ async def on_message(message):
 
         # Dans le cas où on est dans un MP (DM)
         if isinstance(message.channel, discord.DMChannel):
+
             # choose action
             if message.content.lower() in ["pierre", "feuille", "ciseaux"]:
-                await gameManager.actionPlayer(message.author.id, message.content, message.channel)
-                return gameManager.save_game()
+                 await gameManager.actionPlayer(message.author.id, message.content, message.channel)
+                 return gameManager.save_game()
 
             if message.content == "!test":
-                embed = discord.Embed()
-                embed.title = "Simple test !"
-                embed.type = "rich"
-                embed.description = "Un petite description"
-                embed.add_field(name="Message", value="Enregistrements", inline=True)
-                embed.add_field(name="Function", value="Des trucs de ouf", inline=True)
-                embed.add_field(name="Message", value="Enregistrements", inline=False)
-                return await message.channel.send(embed=embed)
+                print("Player dict: ", gameManager.dataManager.getPlayerById(message.author.id).dump_dict())
+                return
+            #     embed = discord.Embed()
+            #     embed.title = "Simple test !"
+            #     embed.type = "rich"
+            #     embed.description = "Un petite description"
+            #     embed.add_field(name="Message", value="Enregistrements", inline=True)
+            #     embed.add_field(name="Function", value="Des trucs de ouf", inline=True)
+            #     embed.add_field(name="Message", value="Enregistrements", inline=False)
+            #     return await message.channel.send(embed=embed)
         await bot.process_commands(message)
 
 
