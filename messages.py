@@ -129,7 +129,7 @@ class Player2InFight(Message):
 
 class PlayerNotFound(Message):
     def __init__(self, name, channel=None):
-        self.content = "Le joueur {name} n'a pas été trouvé."
+        self.content = f"Le joueur {name} n'a pas été trouvé."
         self.channel = channel
 
 class PlayerHasNotSentFight(Message):
@@ -279,16 +279,23 @@ class AlreadyVotedAll(Message):
 # List commands
 class ListPlayers(Message):
     def __init__(self, players, channel=None):
-        message = "Liste des joueurs : \n"
+        self.channel = channel
+
+        self.embed = discord.Embed()
+        self.embed.title = f"Liste des joueurs"
+        self.embed.description="!show-actifs pour lister les joueurs actifs"
+        players_names = ""
+        players_status = ""
         for player in players:
-            message += player.name
+            players_names += player.name + "\n"
             if player.actif:
-                message += ":v:"
+                players_status += ":v:\n"
             else:
-                message += " :sleeping:"
-            message += "\n"
-        self.content = message
-        print(self.content)
+                players_status += " :sleeping:\n"
+
+
+        self.embed.add_field(name="name", value=players_names, inline=True)
+        self.embed.add_field(name="statut", value=players_status, inline=True)
         self.channel = channel
 
 class ListCurrentFights(Message):
@@ -309,6 +316,25 @@ class BecomePassif(Message):
 class BecomeActif(Message):
     def __init__(self, channel=None):
         self.content = "Tu es bien passé en mode actif ! Utilises la commande !passif pour ne plus être attaqué. https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSR5olQJ0iCPut7COcWGoAePC36usg_uE3O8xCYcnp03EPuFz4f9w&s"
+        self.channel = channel
+
+# signature 
+
+class SignatureModified(Message):
+    def __init__(self, channel=None):
+        self.content = "Votre signature a bien été modifiée"
+        self.channel = channel
+
+class ShowSignature(Message):
+    def __init__(self, signature, channel=None):
+        self.content = f"Votre signature : \n{signature}"
+        self.channel = channel
+
+class SignatureWinMessage(Message):
+    def __init__(self, winner, looser, channel=None):
+        self.embed = discord.Embed()
+        self.embed.title=f"Le joueur {winner.name} vous a envoyé une signature car vous êts un looser"
+        self.embed.description = f"=> \n{winner.signature}"
         self.channel = channel
 
 
@@ -367,14 +393,21 @@ class Ranking(Message):
 class NextFights(Message):
     def __init__(self, player, channel):
         
-        # Lister les combats
+        self.embed = discord.Embed()
+        self.embed.title = f"Mes prochains combats"
+        self.embed.description = ""
+        
         message = "Combat envoyé : "
+        next_fight_pointed = False
         if player.sentFight is None:
             message += "Aucun\n"
         else:
             message += f"**{player.sentFight.player2.name}** "
             if player.sentFight.alreadyVote(player):
                 message += ":ok_hand:"
+            elif not next_fight_pointed:
+                message += ":point_left:"
+                next_fight_pointed = True
             message += "\n"
                 
         
@@ -385,9 +418,12 @@ class NextFights(Message):
             message += f"[{i}] {fight.player1.name} "
             if fight.alreadyVote(player):
                 message += ":ok_hand:"
+            elif not next_fight_pointed:
+                message += ":point_left:"
+                next_fight_pointed = True
             message += "\n"
 
-        self.content = message
+        self.embed.description += message
         self.channel = channel
 
 class ShowActifs(Message):
@@ -406,8 +442,10 @@ class ShowActifs(Message):
         self.channel = channel
 
 class Provoc(Message):
-    def __init__(self, provoc, channel = None):
-        self.content = provoc
+    def __init__(self, player, provoc, channel = None):
+        self.embed = discord.Embed()
+        self.embed.title = f"{player.name} vous provoque : "
+        self.embed.description=provoc
         self.channel = channel
 
 # Admin messages

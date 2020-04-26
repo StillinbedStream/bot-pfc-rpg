@@ -51,6 +51,8 @@ class Player(Entity):
         self.__received_tokens = 0
         self.__sent_tokens = 0
         self.__actif = True
+
+        self.__signature = ""
         
     # name
     @property
@@ -171,7 +173,7 @@ class Player(Entity):
         '''
         for i, f in enumerate(self.receivedFights):
             if fight == f:
-                del self.receivedFights[i]
+                del self.__received_fights[i]
                 return True
         return False
 
@@ -215,6 +217,30 @@ class Player(Entity):
             if not fight.alreadyVote(self):
                 return fight
         return None
+
+    def initFights(self):
+        '''
+        '''
+        self.sentFight = None
+        self.__received_fights = []
+
+        # if self.sentFight is not None:
+        #     self.sentFight.cancel = True
+        #     self.sentFight = None
+        
+        # # Cancel les received fights
+        # for fight in self.receivedFights:
+        #     fight.cancel = True
+        
+        # self.__received_fights = []
+    
+    @property
+    def signature(self):
+        return self.__signature
+    
+    @signature.setter
+    def signature(self, signature):
+        self.__signature = signature
 
 class Fight(Entity):
     def __init__(self, id_fight, player1, player2, dataManager):

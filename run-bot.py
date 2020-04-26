@@ -209,6 +209,21 @@ async def s0command(ctx, name_player2: str):
     await gameManager.s0command(message.author.id, name_player2, message.channel)
 
 
+@bot.command(name='signature')
+@commands.dm_only()
+async def signature(ctx, signature: str):
+    gameManager = system["gameManager"]
+    message = ctx.message
+    await gameManager.signature(message.author.id, signature, message.channel)
+
+
+@bot.command(name='mysignature')
+@commands.dm_only()
+async def mysignature(ctx):
+    gameManager = system["gameManager"]
+    message = ctx.message
+    await gameManager.mysignature(message.author.id, message.channel)
+
 
 #@bot.command(name='help')
 # @commands.dm_only()

@@ -100,7 +100,7 @@ class GameManager:
             await send_message(await messages.SentInvite(player1, player2).direct_message(c_player1))
             await send_message(await messages.DoTheChoice().direct_message(c_player1))
             if provoc != "":
-                await send_message(await messages.Provoc(provoc).direct_message(c_player2))
+                await send_message(await messages.Provoc(player1, provoc).direct_message(c_player2))
             await send_message(await messages.YouAreAttacked(player1, player2).direct_message(c_player2))
             await send_message(await messages.DoTheChoice().direct_message(c_player2))
         else:
@@ -183,8 +183,8 @@ class GameManager:
             if winner_id is None:
                 fight.actionPlayer1 = None
                 fight.actionPlayer2 = None
-                await send_message(await messages.Equality(fight.player1, fight.player2).direct_message(c_player1))
-                await send_message(await messages.Equality(fight.player2, fight.player1).direct_message(c_player2))
+                await send_message(await messages.Equality(fight.player1, fight.player2).direct_message(c_player2))
+                await send_message(await messages.Equality(fight.player2, fight.player1).direct_message(c_player1))
                 
             # Cas le combat est fini !
             else:
@@ -227,9 +227,11 @@ class GameManager:
                 if winner_id == id_player:
                     await send_message(await messages.WinMessage(winner_player, looser_player).direct_message(c_player1))
                     await send_message(await messages.LooseMessage(winner_player, looser_player).direct_message(c_player2))
+                    await send_message(await messages.SignatureWinMessage(winner_player, looser_player).direct_message(c_player2))
                 else:
                     await send_message(await messages.WinMessage(winner_player, looser_player).direct_message(c_player2))
                     await send_message(await messages.LooseMessage(winner_player, looser_player).direct_message(c_player1))
+                    await send_message(await messages.SignatureWinMessage(winner_player, looser_player).direct_message(c_player1))
                 
                 # Management of WallOfPFC
                 await self.__wallOfPFC.onWin(fight)
@@ -310,7 +312,7 @@ class GameManager:
                 return await send_message(messages.BugDiscordCommunication())
         
         player.sentFight.cancel = True
-        player.sentFight.player2.removeReceiveFight(player.sentFight)
+        player.sentFight.player2.removeReceivedFight(player.sentFight)
         await send_message(await messages.FightCanceledByPlayer1(player).direct_message(c_player2))
         player.sentFight = None
         await send_message(messages.FightCanceled(channel))
@@ -346,8 +348,9 @@ class GameManager:
         # Cancel fights
         self.dataManager.fights = []
         
-        for key, player in self.dataManager.playersIndexed.items():
-            player.inFight = False
+        for player in self.dataManager.players:
+            player.initFights()
+        
         await send_message(messages.FightsInit(channel))
     
     async def showActifs(self, channel=None):
@@ -390,14 +393,14 @@ class GameManager:
 
         # Est-ce que le joueur 1 existe ?
         if player1 is None:
-            return await send_message(messages.Player2DoesNotExist)
+            return await send_message(messages.Player2DoesNotExist(name_player2, channel))
 
         # Chercher le joueur 2
         player2 = self.dataManager.getPlayerByName(name_player2)
 
         # Est-ce que le joueur 2 existe ?
         if player2 is None:
-            return await send_message(messages.PlayerNotRegistered)
+            return await send_message(messages.PlayerNotRegistered(channel))
 
         # On ajoute les tokens
         player1.sentTokens += 1
@@ -425,7 +428,30 @@ class GameManager:
         
         self.dataManager.syncRanking()
         
+    async def signature(self, id_player, signature, channel=None):
+        # Récupérer le joueur
+        player = self.dataManager.getPlayerById(id_player)
+
+        # Est-ce que le joueur existe ?
+        if player is None:
+            return await send_message(messages.PlayerNotRegistered(channel))
         
+        # On peut modifier sa signature
+        player.signature = signature
+        await send_message(messages.SignatureModified(channel))
+
+    async def mysignature(self, id_player, channel=None):
+        # Récupérer le joueur
+        player = self.dataManager.getPlayerById(id_player)
+
+        # Vérifier que le joueur existe
+        if player is None:
+            return send_message(messages.PlayerNotRegistered(channel))
+        
+        # Envoyer la signature au joueur
+        await messages.send_message(messages.ShowSignature(player.signature, channel))
+
+
 
     # Load and save methods
     def load_game(self):
