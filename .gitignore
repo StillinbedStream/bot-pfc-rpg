@@ -1,4 +1,4 @@
 .env
-data.cornichon
+data.cornichon*
 data.cornichon.json
 __pycache__
