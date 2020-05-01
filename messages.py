@@ -275,7 +275,11 @@ class AlreadyVotedAll(Message):
         self.content = "Tu as déjà voté pour tous les duels en cours !"
         self.channel = channel
 
-
+class AlreadyEncountered(Message):
+    def __init__(self, player2, minutes, secondes, channel=None):
+        self.content = f"Le joueur {player2.name} a déjà été rencontré. Il vous reste {minutes} minutes {secondes} secondes avant de pouvoir l'attaquer."
+        self.channel = channel
+        
 # List commands
 class ListPlayers(Message):
     def __init__(self, players, channel=None):

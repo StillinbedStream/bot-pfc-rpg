@@ -5,6 +5,7 @@ import discord
 import asyncio 
 import exceptions
 import wall
+import re
 
 from discord.ext import commands
 from dotenv import load_dotenv
@@ -13,6 +14,7 @@ from engine import GameManager
 
 from discord.ext import commands
 from discord import Message
+from discord.ext.commands import BadArgument
 
 # TODO: - Système de connexion données - Tester les fonctionnalités
 # TODO: - Savoir combien de combats il nous reste à répondre
@@ -47,7 +49,16 @@ async def on_ready():
     system["gameManager"] = gameManager
 
 
+# Checking management
+NAME_PATTERN = r'^[a-zA-Z]{5,25}$'
+name_pattern = re.compile(NAME_PATTERN, flags=re.I)
 
+
+def is_name(name: str):
+    """For command annotation"""
+    if not name_pattern.match(name):
+        raise BadArgument("Le nom de l'utilisateur doit faire entre 5 et 25 caractères et ne contenir aucun caractère spécial.")
+    return name
 
 
 
@@ -72,9 +83,13 @@ async def init_fights(ctx):
 
 @bot.command(name='change-name')
 @commands.dm_only()
-async def change_name(ctx, name: str, new_name: str):
+async def change_name(ctx, name, new_name: is_name):
+
     gameManager = system["gameManager"]
     message = ctx.message
+    if name == "" or new_name == "":
+        await ctx.message.channel.send("Les noms données ne doivent pas dépasser les 25 caractères. Les caractères spéciaux sont interdits.")
+        pass
     if message.author.id == 143773155549380608:
         await gameManager.changeName(name, new_name, message.channel)
 
@@ -91,9 +106,10 @@ async def list_players(ctx):
 # Enregistrement d'un joueur
 @bot.command(name='register')
 @commands.dm_only()
-async def register(ctx, name: str):
-    if len(name) > 15:
-        return
+async def register(ctx, name):
+    if name == "":
+        await ctx.message.channel.send("Le nom que vous donnez ne doit pas dépasser les 25 caractères et les caractères spéciaux sont interdits.")
+        pass
     gameManager = system["gameManager"]
     message = ctx.message
     await gameManager.register(message.author.id, name, message.channel)
@@ -247,6 +263,7 @@ async def on_disconnect():
 async def on_message(message):
     lock = asyncio.Lock()
     async with lock:
+
         gameManager = system["gameManager"]
         if message.author == bot.user:
             return
@@ -255,9 +272,14 @@ async def on_message(message):
         if isinstance(message.channel, discord.DMChannel):
 
             # choose action
-            if message.content.lower() in ["pierre", "feuille", "ciseaux"]:
-                 await gameManager.actionPlayer(message.author.id, message.content, message.channel)
-                 return gameManager.save_game()
+            if message.content.lower() in ["pierre", "feuille", "ciseaux", "p", "f", "c"]:
+                choices={"p":"pierre", "f":"feuille", "c":"ciseaux"}
+                action = message.content.lower()
+                if action in choices:
+                    action = choices[action]
+                
+                await gameManager.actionPlayer(message.author.id, action, message.channel)
+                return gameManager.save_game()
 
             if message.content == "!test":
                 print("Player dict: ", gameManager.dataManager.getPlayerById(message.author.id).dump_dict())
@@ -272,5 +294,18 @@ async def on_message(message):
             #     return await message.channel.send(embed=embed)
         await bot.process_commands(message)
 
+
+
+
+
+@change_name.error
+async def info_error_change_name(ctx, error):
+    if isinstance(error, commands.BadArgument):
+        await ctx.send(error)
+
+@register.error
+async def info_error_register(ctx, error):
+    if isinstance(error, commands.BadArgument):
+        await ctx.send(error)
 
 bot.run(TOKEN)

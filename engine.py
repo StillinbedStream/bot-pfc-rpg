@@ -88,6 +88,12 @@ class GameManager:
         if player2.actif is False:
             return await send_message(messages.Player2Passif(channel))
 
+        # Est-ce que les joueurs 1 et 2 ne se sont pas déjà rencontrés
+        player1.synchroniseTimePlayerEncountered()
+        enc_1 = player1.playerAlreadyEncountered(player2)
+        if enc_1 is not None:
+            return await send_message(messages.AlreadyEncountered(player2, int(enc_1.seconds / 60), enc_1.seconds % 60, channel))
+        
         # Est-ce que le player 2 existe dans le discord ?
         if self.__client is not None:
             c_player2 = self.__client.get_user(id_joueur2)
@@ -103,9 +109,11 @@ class GameManager:
                 await send_message(await messages.Provoc(player1, provoc).direct_message(c_player2))
             await send_message(await messages.YouAreAttacked(player1, player2).direct_message(c_player2))
             await send_message(await messages.DoTheChoice().direct_message(c_player2))
+            player1.addPlayerEncountered(player2)
+            player2.addPlayerEncountered(player1)
         else:
             await send_message(await messages.AlreadySentFight(player1.sentFight).direct_message(c_player1))
-    
+
     async def attackRandomPlayer(self, id_player, channel=None):
         # Choisir un joueur aléatoirement
         players = [player_ for player_ in self.dataManager.players.copy() if player_.actif and self.__guild.get_member(player_.idPlayer).status == discord.Status.online and player_.idPlayer != id_player]

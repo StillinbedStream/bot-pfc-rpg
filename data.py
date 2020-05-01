@@ -5,7 +5,9 @@ import exceptions
 import messages
 import copy
 import json
-
+from datetime import datetime
+from datetime import timedelta 
+from copy import deepcopy
 # -- Entities
 class Entity:
 
@@ -26,8 +28,13 @@ class Entity:
             d is the returned dictionary with all value to save into a json file.
         '''
         d = {}
+        black_list_keys = [
+            "_" + type(self).__name__ + "__dataManager",
+            "_Player__last_players_encountered"
+        ]
+
         for key, value in self.__dict__.items():
-            if not key == "_" + type(self).__name__ + "__dataManager":
+            if not key in black_list_keys:
                 d[key] = value
         
         return d
@@ -51,6 +58,8 @@ class Player(Entity):
         self.__received_tokens = 0
         self.__sent_tokens = 0
         self.__actif = True
+
+        self.__last_players_encountered = []
 
         self.__signature = ""
         
@@ -241,6 +250,33 @@ class Player(Entity):
     @signature.setter
     def signature(self, signature):
         self.__signature = signature
+
+    def addPlayerEncountered(self, player):
+        if not self.playerAlreadyEncountered(player):
+            self.__last_players_encountered.append([player, datetime.now()])
+
+    def playerAlreadyEncountered(self, player):   
+        for informations in self.__last_players_encountered:
+            p = informations[0]
+            dt = deepcopy(informations[1])
+            dt_futur = dt + timedelta(seconds=30)
+
+            if p is player:
+                print(f"Le joueur trouvé ! {p.name} | {player.name}")
+                return dt_futur - datetime.now()
+        return None
+
+    def synchroniseTimePlayerEncountered(self):
+        for i, information in enumerate(reversed(self.__last_players_encountered)):
+            dt = deepcopy(information[1])
+            dt = dt + timedelta(seconds=30)
+            print(dt)
+            # Si le temps est dépassé
+            if dt < datetime.now():
+                print("on rentre bien dans cette condition !")
+                del self.__last_players_encountered[0:len(self.__last_players_encountered) - i]
+                return
+
 
 class Fight(Entity):
     def __init__(self, id_fight, player1, player2, dataManager):
