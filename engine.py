@@ -191,8 +191,8 @@ class GameManager:
             if winner_id is None:
                 fight.actionPlayer1 = None
                 fight.actionPlayer2 = None
-                await send_message(await messages.Equality(fight.player1, fight.player2).direct_message(c_player2))
-                await send_message(await messages.Equality(fight.player2, fight.player1).direct_message(c_player1))
+                await send_message(await messages.Equality(player1, player2).direct_message(c_player1))
+                await send_message(await messages.Equality(player2, player1).direct_message(c_player2))
                 
             # Cas le combat est fini !
             else:
@@ -340,7 +340,9 @@ class GameManager:
             return await send_message(messages.NameExists(new_name, channel))
         
         # Modifier son nom
+        self.dataManager.__players_ind_name.pop(player.name, None)
         player.name = new_name
+        self.dataManager.__players_ind_name[player.name] = player
         await send_message(messages.NameChanged(name, new_name, channel))
 
     async def help(self, channel):

@@ -16,6 +16,8 @@ from discord.ext import commands
 from discord import Message
 from discord.ext.commands import BadArgument
 
+
+print("bonjour !")
 # TODO: - Système de connexion données - Tester les fonctionnalités
 # TODO: - Savoir combien de combats il nous reste à répondre
 
@@ -62,6 +64,12 @@ def is_name(name: str):
 
 
 
+# -- Caritatif commands
+@bot.command(name="leplusbeau")
+@commands.dm_only()
+async def leplusbeau(ctx):
+    await ctx.send("Le plus beau c'est <@289061712043442176>")
+
 
 
 # -- COMMANDS
@@ -87,9 +95,9 @@ async def change_name(ctx, name, new_name: is_name):
 
     gameManager = system["gameManager"]
     message = ctx.message
-    if name == "" or new_name == "":
-        await ctx.message.channel.send("Les noms données ne doivent pas dépasser les 25 caractères. Les caractères spéciaux sont interdits.")
-        pass
+    #if name == "" or new_name == "":
+    #    await ctx.message.channel.send("Les noms données ne doivent pas dépasser les 25 caractères. Les caractères spéciaux sont interdits.")
+    #    pass
     if message.author.id == 143773155549380608:
         await gameManager.changeName(name, new_name, message.channel)
 
@@ -100,16 +108,17 @@ async def list_players(ctx):
     gameManager = system["gameManager"]
     message = ctx.message
     await gameManager.listPlayers(message.channel)
-    gameManager.save_game()
 
 
 # Enregistrement d'un joueur
 @bot.command(name='register')
 @commands.dm_only()
-async def register(ctx, name):
-    if name == "":
-        await ctx.message.channel.send("Le nom que vous donnez ne doit pas dépasser les 25 caractères et les caractères spéciaux sont interdits.")
-        pass
+async def register(ctx, name: is_name):
+    #if name == "":
+    #    await ctx.message.channel.send("Le nom que vous donnez ne doit pas dépasser les 25 caractères et les caractères spéciaux sont interdits.")
+    #    pass
+    if name=="idolon" and ctx.message.author.id != 143773155549380608:
+        return
     gameManager = system["gameManager"]
     message = ctx.message
     await gameManager.register(message.author.id, name, message.channel)
@@ -134,7 +143,6 @@ async def attack(ctx, name_player2: str = "", provoc: str = ""):
         await message.channel.send(f"Le joueur {name_player2} n'existe pas, comme ton charisme ! https://gifimage.net/wp-content/uploads/2017/08/popopo-gif-1.gif")
     else:
         await gameManager.attack(message.author.id, player2.idPlayer, provoc, message.channel)
-    gameManager.save_game()
     #elif len(splited) == 1:
     #await gameManager.attackRandomPlayer(message.author.id, message.channel)
 
@@ -181,8 +189,6 @@ async def actif(ctx):
     gameManager = system["gameManager"]
     message = ctx.message
     await gameManager.becomeActif(message.author.id, message.channel)
-    gameManager.save_game()
-
 
 @bot.command(name='cancel')
 @commands.dm_only()
@@ -190,7 +196,6 @@ async def cancel(ctx):
     gameManager = system["gameManager"]
     message = ctx.message
     await gameManager.cancelFight(message.author.id, message.channel)
-    gameManager.save_game()
 
 @bot.command(name='show-actifs')
 @commands.dm_only()
@@ -198,7 +203,6 @@ async def show_actifs(ctx):
     gameManager = system["gameManager"]
     message = ctx.message
     await gameManager.showActifs(message.channel)
-    gameManager.save_game()
 
 
 @bot.command(name='myfights')
