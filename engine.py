@@ -364,13 +364,6 @@ class GameManager:
         await send_message(messages.FightsInit(channel))
     
     async def showActifs(self, channel=None):
-        message = messages.Message()
-        message.content = "Liste des joueurs actifs \n"
-        for player in self.dataManager.players:
-            c_player = self.__guild.get_member(player.idPlayer)
-            if player.actif and c_player.status == discord.Status.online:
-                message.content += f"{player.name} avec {player.score} pts :v:\n"
-        message.channel = channel
         await send_message(messages.ShowActifs(self.dataManager.players, self.__guild, channel))
 
     async def nextFights(self, id_player, channel=None):
@@ -403,14 +396,14 @@ class GameManager:
 
         # Est-ce que le joueur 1 existe ?
         if player1 is None:
-            return await send_message(messages.Player2DoesNotExist(name_player2, channel))
+            return await send_message(messages.PlayerNotRegistered(channel))
 
         # Chercher le joueur 2
         player2 = self.dataManager.getPlayerByName(name_player2)
 
         # Est-ce que le joueur 2 existe ?
         if player2 is None:
-            return await send_message(messages.PlayerNotRegistered(channel))
+            return await send_message(messages.Player2DoesNotExist(name_player2, channel))
 
         # On ajoute les tokens
         player1.sentTokens += 1
@@ -470,7 +463,6 @@ class GameManager:
         '''
         if os.path.isfile(self.DATA_FILE):
             self.dataManager.load_json(self.DATA_FILE)
-
         
     def save_game(self):
         '''

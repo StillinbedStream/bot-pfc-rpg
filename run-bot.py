@@ -17,7 +17,6 @@ from discord import Message
 from discord.ext.commands import BadArgument
 
 
-print("bonjour !")
 # TODO: - Système de connexion données - Tester les fonctionnalités
 # TODO: - Savoir combien de combats il nous reste à répondre
 

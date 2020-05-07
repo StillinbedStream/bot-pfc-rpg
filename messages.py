@@ -437,6 +437,8 @@ class ShowActifs(Message):
         self.embed.description = ""
         for player in players:
             c_player = guild.get_member(player.idPlayer)
+            if c_player is None:
+                continue
             if player.actif and c_player.status == discord.Status.online:
                 self.embed.add_field(name="name", value=player.name, inline=True)
                 self.embed.add_field(name="statut", value=f"{player.score} pts", inline=True)
