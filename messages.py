@@ -219,6 +219,8 @@ class MyStats(Message):
         self.embed.add_field(name="looses cons", value=f"{player.nbLooseCons}", inline=True)
         self.embed.add_field(name="looses cons max", value=f"{player.nbLooseConsMax}", inline=True)
 
+        self.embed.add_field(name="coins", value=f"{player.coins} :moneybag:", inline=True)
+
         self.channel = channel
 
 class PlayerStats(Message):
@@ -463,5 +465,11 @@ class NameChanged(Message):
 class FightsInit(Message):
     def __init__(self, channel=None):
         self.content = "Les combats sont bien réinitialisés !"
+        self.channel = channel
+
+
+class NotEnoughCoins(Message):
+    def __init__(self, nb_needed, channel=None):
+        self.content = f"Tu n'as pas assez de coins ! Il t'en faut {nb_needed} !"
         self.channel = channel
 

@@ -212,6 +212,8 @@ class GameManager:
                 # Augmenter les compteurs win et loose
                 winner_player.nbWin += 1
                 looser_player.nbLoose += 1
+                
+                winner_player.coins += 1
 
                 # Gérer les win et loose consécutives
                 if winner_player.nbLooseCons > 0:
@@ -391,6 +393,7 @@ class GameManager:
 
     async def s0command(self, id_player, name_player2, channel=None):
 
+        s0ca_price = 1
         # Est-ce que le joueur 1 existe ?
         player1 = self.dataManager.getPlayerById(id_player)
 
@@ -405,10 +408,12 @@ class GameManager:
         if player2 is None:
             return await send_message(messages.Player2DoesNotExist(name_player2, channel))
 
+        # Est-ce qu'on a suffisamment de coin pour lancer une s0ckattack ?
+        if player1.coins < s0ca_price:
+            return await send_message(messages.NotEnoughCoins(s0ca_price, channel))
         # On ajoute les tokens
         player1.sentTokens += 1
         player2.receivedTokens += 1
-
         
         # Créer le DM de Joueur 1
         c_player2 = None
@@ -426,6 +431,7 @@ class GameManager:
             player2.receivedTokens -= 1
             await send_message(await messages.TokenNotSentCauseNegativeScore().direct_message(c_player1))
         else:
+            player1.coins -= s0ca_price
             await send_message(await messages.TokenSent(player2).direct_message(c_player1))
             await send_message(await messages.TokenReceived(player1).direct_message(c_player2))
         

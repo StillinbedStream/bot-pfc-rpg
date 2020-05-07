@@ -60,6 +60,7 @@ class Player(Entity):
         self.__actif = True
 
         self.__last_players_encountered = []
+        self.__coins = 0
 
         self.__signature = ""
         
@@ -277,6 +278,13 @@ class Player(Entity):
                 del self.__last_players_encountered[0:len(self.__last_players_encountered) - i]
                 return
 
+    @property
+    def coins(self):
+        return self.__coins
+    
+    @coins.setter
+    def coins(self, coins):
+        self.__coins = coins
 
 class Fight(Entity):
     def __init__(self, id_fight, player1, player2, dataManager):
