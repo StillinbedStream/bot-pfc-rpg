@@ -450,10 +450,12 @@ class ShowActifs(Message):
         self.channel = channel
 
 class Provoc(Message):
-    def __init__(self, player, provoc, channel = None):
+    def __init__(self, player, provoc, provoc_image, channel = None):
         self.embed = discord.Embed()
         self.embed.title = f"{player.name} vous provoque : "
         self.embed.description=provoc
+        if provoc_image != "":
+            self.embed.set_image(url=provoc_image)
         self.channel = channel
 
 # Admin messages

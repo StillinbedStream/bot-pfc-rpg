@@ -56,7 +56,7 @@ class GameManager:
             message.channel = channel
             await send_message(message)
 
-    async def attack(self, id_joueur1, id_joueur2, provoc, channel=None):
+    async def attack(self, id_joueur1, id_joueur2, provoc, provoc_image, channel=None):
         '''
         Attaquer un joueur
         '''
@@ -106,7 +106,7 @@ class GameManager:
             await send_message(await messages.SentInvite(player1, player2).direct_message(c_player1))
             await send_message(await messages.DoTheChoice().direct_message(c_player1))
             if provoc != "":
-                await send_message(await messages.Provoc(player1, provoc).direct_message(c_player2))
+                await send_message(await messages.Provoc(player1, provoc, provoc_image).direct_message(c_player2))
             await send_message(await messages.YouAreAttacked(player1, player2).direct_message(c_player2))
             await send_message(await messages.DoTheChoice().direct_message(c_player2))
             player1.addPlayerEncountered(player2)

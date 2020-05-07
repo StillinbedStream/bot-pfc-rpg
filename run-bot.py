@@ -127,7 +127,7 @@ async def register(ctx, name: is_name):
 
 @bot.command(name='attack')
 @commands.dm_only()
-async def attack(ctx, name_player2: str = "", provoc: str = ""):
+async def attack(ctx, name_player2: str = "", provoc: str = "", provoc_image: str=""):
     
     if name_player2 == "":
         return
@@ -141,7 +141,7 @@ async def attack(ctx, name_player2: str = "", provoc: str = ""):
     if player2 == None:
         await message.channel.send(f"Le joueur {name_player2} n'existe pas, comme ton charisme ! https://gifimage.net/wp-content/uploads/2017/08/popopo-gif-1.gif")
     else:
-        await gameManager.attack(message.author.id, player2.idPlayer, provoc, message.channel)
+        await gameManager.attack(message.author.id, player2.idPlayer, provoc, provoc_image, message.channel)
     #elif len(splited) == 1:
     #await gameManager.attackRandomPlayer(message.author.id, message.channel)
 
