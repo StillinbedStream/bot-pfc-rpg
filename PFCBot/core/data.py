@@ -2,12 +2,15 @@
 
 import pickle
 import exceptions
-import messages
 import copy
 import json
 from datetime import datetime
 from datetime import timedelta 
 from copy import deepcopy
+
+from PFCBot.messages.player import *
+import PFCBot.core.engine
+
 # -- Entities
 class Entity:
 
@@ -63,6 +66,7 @@ class Player(Entity):
         self.__coins = 0
 
         self.__signature = ""
+        self.__signature_image = ""
         
     # name
     @property
@@ -156,8 +160,7 @@ class Player(Entity):
     # score
     @property
     def score(self):
-        return (self.nbWin * 20 - self.nbLoose * 5
-            - self.receivedTokens * 4 - self.sentTokens * 5)
+        return PFCBot.core.engine.compute_score_player(self)
     
     # exp
     @property
@@ -251,6 +254,14 @@ class Player(Entity):
     @signature.setter
     def signature(self, signature):
         self.__signature = signature
+
+    @property
+    def signatureImage(self):
+        return self.__signature_image
+
+    @signatureImage.setter
+    def signatureImage(self, signature_image):
+        self.__signature_image = signature_image
 
     def addPlayerEncountered(self, player):
         if not self.playerAlreadyEncountered(player):
@@ -521,11 +532,11 @@ class DataManager():
         '''
         # Vérifier que le joueur existe pas déjà
         if player.idPlayer in self.__players:
-            return messages.PlayerAlreadyRegistered(player)
+            return PlayerAlreadyRegistered(player)
         
         # Vérifier que le nom du joueur n'est pas déjà prix
         if player.name in self.__players_ind_name:
-            return messages.NameExists(player.name)
+            return NameExists(player.name)
         
         # Ajouter le joueur dans le tableau et dans les index
         self.__players.append(player)
@@ -606,7 +617,11 @@ class DataManager():
         for fight in self.fights:
             self.__fights_indexed[fight.idFight] = fight
         
-
+    def changeName(self, player, new_name):
+        self.__players_ind_name.pop(player.name)
+        player.name = new_name
+        self.__players_ind_name[player.name] = player
+        
     # Save and load
     def save_json(self, file):
         print("sauvegarde des données")

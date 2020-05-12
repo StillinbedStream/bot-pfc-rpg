@@ -4,12 +4,12 @@ import random
 import discord
 import asyncio 
 import exceptions
-import wall
+from PFCBot.core import wall
 import re
 
 from discord.ext import commands
 from dotenv import load_dotenv
-from engine import GameManager
+from PFCBot.core.engine import GameManager
 
 
 from discord.ext import commands
@@ -51,7 +51,7 @@ async def on_ready():
 
 
 # Checking management
-NAME_PATTERN = r'^[a-zA-Z]{5,25}$'
+NAME_PATTERN = r'^[0-9a-zA-Z]{5,25}$'
 name_pattern = re.compile(NAME_PATTERN, flags=re.I)
 
 
@@ -91,7 +91,6 @@ async def init_fights(ctx):
 @bot.command(name='change-name')
 @commands.dm_only()
 async def change_name(ctx, name, new_name: is_name):
-
     gameManager = system["gameManager"]
     message = ctx.message
     #if name == "" or new_name == "":
@@ -127,16 +126,18 @@ async def register(ctx, name: is_name):
 
 @bot.command(name='attack')
 @commands.dm_only()
-async def attack(ctx, name_player2: str = "", provoc: str = "", provoc_image: str=""):
+async def attack(ctx, name_player2: is_name = "", provoc: str = "", provoc_image: str=""):
     
+    gameManager = system["gameManager"]
+    message = ctx.message
     if name_player2 == "":
+        await gameManager.attackRandomPlayer(message.author.id, message.channel)
         return
+    
     if len(name_player2) > 15:
         return
     
     # Attaque
-    gameManager = system["gameManager"]
-    message = ctx.message
     player2 = gameManager.dataManager.getPlayerByName(name_player2)
     if player2 == None:
         await message.channel.send(f"Le joueur {name_player2} n'existe pas, comme ton charisme ! https://gifimage.net/wp-content/uploads/2017/08/popopo-gif-1.gif")
@@ -230,10 +231,10 @@ async def s0command(ctx, name_player2: str):
 
 @bot.command(name='signature')
 @commands.dm_only()
-async def signature(ctx, signature: str):
+async def signature(ctx, signature: str, signature_image: str = ""):
     gameManager = system["gameManager"]
     message = ctx.message
-    await gameManager.signature(message.author.id, signature, message.channel)
+    await gameManager.signature(message.author.id, signature, signature_image, message.channel)
 
 
 @bot.command(name='mysignature')
@@ -304,6 +305,8 @@ async def on_message(message):
 @change_name.error
 async def info_error_change_name(ctx, error):
     if isinstance(error, commands.BadArgument):
+        await ctx.send(error)
+    else:
         await ctx.send(error)
 
 @register.error
