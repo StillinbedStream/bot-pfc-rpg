@@ -20,7 +20,6 @@ class WallOfPFC:
             message = Message()
             message.channel = self.__channel
             message.content = f"<@!{fight.winner.idPlayer}> {fight.winner.name} a gagné 5 parties consécutives ! :raised_hands:"
-            message.channel = self.__channel
             await send_message(message)
         
         # Si le looser a 5 défaites consécutives
@@ -28,7 +27,6 @@ class WallOfPFC:
             message = Message()
             message.channel = self.__channel
             message.content = f"<@!{fight.looser.idPlayer}> {fight.looser.name} a perdu 5 parties consécutives ! :thumbsdown:"
-            message.channel = self.__channel
             await send_message(message)
         
         # Si c'est notre première victoire 
@@ -36,7 +34,6 @@ class WallOfPFC:
             message = Message()
             message.channel = self.__channel
             message.content = f"<@!{fight.winner.idPlayer}> {fight.winner.name} a gagné sa première victoire ! :baby:"
-            message.channel = self.__channel
             await send_message(message)
         
         # Si on atteind un certain nombre de wins:
@@ -44,7 +41,15 @@ class WallOfPFC:
             if fight.winner.nbWin == tier:
                 message = Message()
                 message.channel = self.__channel
-                message.content = f"<@!{fight.winner.idPlayer}> {fight.winner.name} a atteind {tier} victoires ! :stillinkawai: :muscle:"
+                message.content = f"<@!{fight.winner.idPlayer}> {fight.winner.name} a atteind {tier} victoires ! <:stilli2Kawaii:701093440582189056> :muscle:"
                 await send_message(message)
         
         # TODO: Si quelqu'un a perdu plus de X fois contre quelqu'un d'autres
+    
+    async def onFallEllyss(self, sender, receiver):
+        # Si le winner a 5 victoires consécutives
+        message = Message()
+        message.channel = self.__channel
+        message.content = f"<@!{sender.idPlayer}> a FallEllyssé <@!{receiver.idPlayer}> ! <:sip:710591429151555725>"
+        await send_message(message)
+        

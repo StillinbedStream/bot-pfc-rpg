@@ -487,7 +487,7 @@ class GameManager:
 
         # Est-ce que le joueur a assez de papoules ?
         if player1.coins < price:
-            return await send_message(NotEnoughCoins(price))
+            return await send_message(NotEnoughCoins(price, channel))
 
 
 
@@ -517,7 +517,7 @@ class GameManager:
         # Envoyer un message au player 2
         await send_message(await FallEllyssed(player1, player2).direct_message(c_player2))
         
-
+        await self.__wallOfPFC.onFallEllyss(player1, player2)
 
         
 
