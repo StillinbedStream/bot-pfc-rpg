@@ -622,6 +622,16 @@ class DataManager():
         player.name = new_name
         self.__players_ind_name[player.name] = player
         
+    def getLastWinsOfPlayer(self, player):
+        fights = []
+        for fight in self.fights:
+            if fight.isInvolved(player) and fight.winner is player:
+                fights.append(fight)
+        
+        return fights
+    
+
+
     # Save and load
     def save_json(self, file):
         print("sauvegarde des données")

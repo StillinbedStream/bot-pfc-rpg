@@ -19,6 +19,7 @@ from PFCBot.messages.discord_related import *
 from PFCBot.messages.others import *
 from PFCBot.messages.lists import *
 from PFCBot.messages.coins import *
+from PFCBot.messages.FallEllyss import *
 
 
 def compute_score_player(player):
@@ -454,6 +455,74 @@ class GameManager:
         
         self.dataManager.syncRanking()
         
+    async def fallEllyss(self, id_player, name_player2, channel=None):
+        # Variables
+        nbFightsEffect = 5
+        price = 15
+
+        # Récupérer le joueur 1
+        player1 = self.dataManager.getPlayerById(id_player)
+
+        # Vérifier que le joueur 1 existe
+        if player1 is None:
+            return await send_message(PlayerNotRegistered(channel))
+        
+        # Récupérer le joueur 2
+        player2 = self.dataManager.getPlayerByName(name_player2)
+
+        # Vérifier que le joueur 2 existe
+        if player2 is None:
+            return await send_message(Player2DoesNotExist(name_player2))
+
+        # last fights of player 2
+        fights = self.dataManager.getLastWinsOfPlayer(player2)
+
+
+        # Si le joueur n'a pas assez de combats de gagnés
+        if len(fights) < nbFightsEffect:
+            # On doit envoyer un message pour dire que le joueur n'a pas assez de fights gagnés.
+            return await send_message(FallEllyssNotEnoughWin(nbFightsEffect, player2, channel))
+        
+        fights = fights[-nbFightsEffect:]
+
+        # Est-ce que le joueur a assez de papoules ?
+        if player1.coins < price:
+            return await send_message(NotEnoughCoins(price))
+
+
+
+        for fight in fights:
+            fight.winner.nbWin -= 1
+            fight.looser.nbLoose -= 1
+            fight.cancel = True
+            # Envoyer un message comme quoi votre fight a été fallEllyssé ?
+        
+        # On enlève les coins
+        player1.coins -= price
+
+        
+        self.dataManager.syncRanking()
+        # Créer le DM de Joueur 1
+        c_player2 = None
+        if self.__client is not None:
+            c_player2 = self.__client.get_user(player2.idPlayer)
+        
+        # Créer le DM de Joueur 2
+        c_player1 = None
+        if self.__client is not None:
+            c_player1 = self.__client.get_user(player1.idPlayer)
+        
+        # Envoyer un message au player 1
+        await send_message(await FallEllyssDone(player1, player2).direct_message(c_player1))
+        # Envoyer un message au player 2
+        await send_message(await FallEllyssed(player1, player2).direct_message(c_player2))
+        
+
+
+        
+
+
+
     async def signature(self, id_player, signature, signature_image = "", channel=None):
         # Récupérer le joueur
         player = self.dataManager.getPlayerById(id_player)

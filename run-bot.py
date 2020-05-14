@@ -228,6 +228,13 @@ async def s0command(ctx, name_player2: str):
     message = ctx.message
     await gameManager.s0command(message.author.id, name_player2, message.channel)
 
+@bot.command(name="fallellyss")
+@commands.dm_only()
+async def fallelyss(ctx, name_player2: is_name):
+    gameManager = system["gameManager"]
+    message = ctx.message
+    await gameManager.fallEllyss(message.author.id, name_player2, message.channel)
+
 
 @bot.command(name='signature')
 @commands.dm_only()
