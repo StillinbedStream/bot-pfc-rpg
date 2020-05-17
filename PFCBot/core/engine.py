@@ -21,6 +21,7 @@ from PFCBot.messages.lists import *
 from PFCBot.messages.coins import *
 from PFCBot.messages.FallEllyss import *
 
+from PFCBot.core.spell import SpellFactory
 
 def compute_score_player(player):
     '''
@@ -42,13 +43,23 @@ class GameManager:
 
     def __init__(self, wallOfPFC, client=None, guild=None):
         self.__dataManager = DataManager()
+        self.__dataManager.wallOfPFC = wallOfPFC
         self.__wallOfPFC = wallOfPFC
         self.__client = client
         self.__guild = guild
     
+    # Properties
     @property
     def dataManager(self):
         return self.__dataManager
+    
+    @property
+    def client(self):
+        return self.__client
+    
+    @property
+    def guild(self):
+        return self.__guild
     
 
 
@@ -66,7 +77,7 @@ class GameManager:
         if self.__dataManager.getPlayerByName(name) is not None:
             return await send_message(NameExists(name, channel))
 
-        message = self.__dataManager.createPlayer(id_joueur, name)
+        message = await self.__dataManager.createPlayer(id_joueur, name)
 
         if message is None:
             return await send_message(RegisterDone(channel))
@@ -249,7 +260,7 @@ class GameManager:
                     looser_player.nbLooseConsMax = looser_player.nbLooseCons
 
                 self.dataManager.endFight(fight)
-                self.dataManager.syncRanking()
+                await self.dataManager.syncRanking()
 
                 # Envoyer le message à la bonne personne
                 if winner_id == id_player:
@@ -270,12 +281,19 @@ class GameManager:
             await send_message(await PlayerMadeChoice(player1, player2).direct_message(c_player2))
             await send_message(await ActionReceived(player2).direct_message(c_player1))
 
-    async def listPlayers(self, channel=None):
+    async def listPlayers(self, id_player, channel=None):
         '''
         Liste les joueurs enregistrés
         '''
+        # Récupérer le joueur
+        player = self.dataManager.getPlayerById(id_player)
+
+        # Vérifie que le joueur existe
+        if player is None:
+            return await send_message(PlayerNotRegistered)
+        
         players = self.dataManager.players
-        await send_message(ListPlayers(players, channel))
+        await send_message(ListPlayers(player, players, self.guild, channel))
 
     async def listCurrentFights(self, channel=None):
         '''
@@ -368,11 +386,18 @@ class GameManager:
     async def help(self, channel):
         await send_message(Help(channel))
 
-    async def listRanking(self, channel=None):
+    async def listRanking(self, id_player, channel=None):
         '''
             Permet à l'utilisateur de faire lister le classement
         '''
-        await send_message(Ranking(self.dataManager.ranking, channel))
+        # Récupérer le joueur
+        player = self.dataManager.getPlayerById(id_player)
+
+        # Vérifie que le joueur existe
+        if player is None:
+            return await send_message(PlayerNotRegistered)
+
+        await send_message(Ranking(player, self.dataManager.ranking, self.__guild, channel))
 
     async def initFights(self, channel=None):
         # Cancel fights
@@ -383,8 +408,15 @@ class GameManager:
         
         await send_message(FightsInit(channel))
     
-    async def showActifs(self, channel=None):
-        await send_message(ShowActifs(self.dataManager.players, self.__guild, channel))
+    async def showActifs(self, id_player, channel=None):
+        # Récupérer le joueur
+        player = self.dataManager.getPlayerById(id_player)
+
+        # Vérifie que le joueur existe
+        if player is None:
+            return await send_message(PlayerNotRegistered)
+        
+        await send_message(ShowActifs(player, self.dataManager.players, self.__guild, channel))
 
     async def nextFights(self, id_player, channel=None):
         # Récupérer le player
@@ -453,7 +485,24 @@ class GameManager:
             await send_message(await TokenSent(player2).direct_message(c_player1))
             await send_message(await TokenReceived(player1).direct_message(c_player2))
         
-        self.dataManager.syncRanking()
+        await self.dataManager.syncRanking()
+        
+    async def use_spell(self, spell, id_player, channel=None, *args):
+        
+        # Récupérer le joueur
+        player = self.dataManager.getPlayerById(id_player)
+        
+        # Vérifier que le joueur existe
+        if player is None:
+            return await send_message(PlayerNotRegistered)
+        
+        spell = SpellFactory().getSpell(spell)
+        spell.user = player
+        spell.arguments = spell.Arguments(*args)
+        spell.gameManager = self
+        spell.dataManager = self.dataManager
+        if await spell.checkUsable(channel):
+            await spell.use(channel)
         
     async def fallEllyss(self, id_player, name_player2, channel=None):
         # Variables
@@ -501,7 +550,7 @@ class GameManager:
         player1.coins -= price
 
         
-        self.dataManager.syncRanking()
+        await self.dataManager.syncRanking()
         # Créer le DM de Joueur 1
         c_player2 = None
         if self.__client is not None:
@@ -518,10 +567,6 @@ class GameManager:
         await send_message(await FallEllyssed(player1, player2).direct_message(c_player2))
         
         await self.__wallOfPFC.onFallEllyss(player1, player2)
-
-        
-
-
 
     async def signature(self, id_player, signature, signature_image = "", channel=None):
         # Récupérer le joueur
@@ -547,15 +592,27 @@ class GameManager:
         # Envoyer la signature au joueur
         await send_message(ShowSignature(player, channel))
 
+    async def mobile(self, id_player, channel=None):
+
+        # Récupérer le joueur
+        player = self.dataManager.getPlayerById(id_player)
+
+        # Est-ce qu'il existe ?
+        if player is None:
+            return await send_message(PlayerNotRegistered(channel))
+        
+        player.mobile = not player.mobile
+        await send_message(MobileChanged(player, channel))
+
 
 
     # Load and save methods
-    def load_game(self):
+    async def load_game(self):
         '''
         Charger les données du jeu
         '''
         if os.path.isfile(self.DATA_FILE):
-            self.dataManager.load_json(self.DATA_FILE)
+            await self.dataManager.load_json(self.DATA_FILE)
         
     def save_game(self):
         '''

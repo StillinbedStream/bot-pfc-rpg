@@ -11,6 +11,7 @@ from copy import deepcopy
 from PFCBot.messages.player import *
 import PFCBot.core.engine
 
+TIME_DELTA_PLAYER_ENCOUNTERED = timedelta(seconds=30)
 # -- Entities
 class Entity:
 
@@ -67,6 +68,8 @@ class Player(Entity):
 
         self.__signature = ""
         self.__signature_image = ""
+        self.__mobile = False
+        
         
     # name
     @property
@@ -77,6 +80,22 @@ class Player(Entity):
     def name(self, name):
         self.__name = name
     
+    # displayed name
+    @property
+    def displayedName(self):
+        add_name = ""
+
+        if len(self.__dataManager.ranking) > 3:
+            # Rank Emoji
+            if self.__dataManager.ranking[0] == self:
+                add_name += ":first_place:"
+            elif self.__dataManager.ranking[1] == self:
+                add_name += ":second_place:"
+            elif self.__dataManager.ranking[2] == self:
+                add_name += ":third_place:"
+            
+        # Other emojis ?
+        return add_name + self.name
 
     # idPlayer
     @property
@@ -271,7 +290,7 @@ class Player(Entity):
         for informations in self.__last_players_encountered:
             p = informations[0]
             dt = deepcopy(informations[1])
-            dt_futur = dt + timedelta(seconds=30)
+            dt_futur = dt + TIME_DELTA_PLAYER_ENCOUNTERED
 
             if p is player:
                 print(f"Le joueur trouvé ! {p.name} | {player.name}")
@@ -281,7 +300,7 @@ class Player(Entity):
     def synchroniseTimePlayerEncountered(self):
         for i, information in enumerate(reversed(self.__last_players_encountered)):
             dt = deepcopy(information[1])
-            dt = dt + timedelta(seconds=30)
+            dt = dt + TIME_DELTA_PLAYER_ENCOUNTERED
             print(dt)
             # Si le temps est dépassé
             if dt < datetime.now():
@@ -297,6 +316,14 @@ class Player(Entity):
     def coins(self, coins):
         self.__coins = coins
 
+    @property
+    def mobile(self):
+        return self.__mobile
+    
+    @mobile.setter
+    def mobile(self, mobile):
+        self.__mobile = mobile
+    
 class Fight(Entity):
     def __init__(self, id_fight, player1, player2, dataManager):
         self.__dataManager = dataManager
@@ -471,6 +498,7 @@ class DataManager():
 
         self.__fights = []
         self.__fights_indexed = {}
+        self.__wall_of_pfc = {}
 
         # Counters
         self.__id_counter_fights = 0
@@ -495,6 +523,13 @@ class DataManager():
     def playersIndexed(self):
         return self.__players_indexed
     
+    @property
+    def wallOfPFC(self):
+        return self.__wall_of_pfc
+
+    @wallOfPFC.setter
+    def wallOfPFC(self, wall_of_pfc):
+        self.__wall_of_pfc = wall_of_pfc
 
     # Players methods
     def getPlayerById(self, id_player):
@@ -506,16 +541,20 @@ class DataManager():
             return self.__players_indexed[id_player]
         return None
     
-    def getPlayerByName(self, name):
+    def getPlayerByName(self, name, is_sensitive=False):
         '''
         Retourne le joueur trouvé au nom donné.
         Si le joueur n'est pas trouvé, retourne None
         '''
         for player in self.__players:
-            if player.name == name:
-                return player
+            if is_sensitive:
+                if player.name == name:
+                    return player
+            else:
+                if player.name.lower() == name.lower():
+                    return player
 
-    def createPlayer(self, id_player, name):
+    async def createPlayer(self, id_player, name):
         '''
             Crée un player et l'ajoute à la BDD
         '''
@@ -523,7 +562,7 @@ class DataManager():
         player.idPlayer = id_player
         player.name = name
         message = self.addPlayer(player)
-        self.syncRanking()
+        await self.syncRanking()
         return message
     
     def addPlayer(self, player):
@@ -648,7 +687,7 @@ class DataManager():
             to_write = json.dumps(data)
             f.write(to_write)
 
-    def load_json(self, file):
+    async def load_json(self, file):
         data = None
         with open(file, "r") as f:
             data = json.load(f)
@@ -662,12 +701,17 @@ class DataManager():
         
         self.__id_counter_fights = data["id_counter_fights"]
         self.indexLists()
-        self.syncRanking()
+        await self.syncRanking()
 
     # Ranking methods
-    def syncRanking(self):
+    async def syncRanking(self):
         '''
             Synchronise le classement quand c'est demandé pour mettre à jour la 
             liste des utilisateurs
         '''
+        self.old_rank = self.ranking
         self.ranking = [v for k, v in sorted(self.__players_indexed.items(), key=lambda item: item[1].score, reverse=True)]
+
+        if self.wallOfPFC is not None and self.old_rank != {}:
+            await self.wallOfPFC.onRankSync(self.old_rank, self.ranking)
+        

@@ -5,16 +5,15 @@ import discord
 import asyncio 
 import exceptions
 from PFCBot.core import wall
-import re
 
 from discord.ext import commands
 from dotenv import load_dotenv
 from PFCBot.core.engine import GameManager
-
+from PFCBot.commands.converters import is_name
 
 from discord.ext import commands
 from discord import Message
-from discord.ext.commands import BadArgument
+
 
 
 # TODO: - Système de connexion données - Tester les fonctionnalités
@@ -46,20 +45,12 @@ async def on_ready():
         raise Exception("On n'a pas trouvé le channel wall of PFC")
 
     gameManager = GameManager(wall.WallOfPFC(wall_of_epicness_channel), bot, bot.get_guild(GUILD_ID))
-    gameManager.load_game()
+    await gameManager.load_game()
     system["gameManager"] = gameManager
 
 
-# Checking management
-NAME_PATTERN = r'^[0-9a-zA-Z]{5,25}$'
-name_pattern = re.compile(NAME_PATTERN, flags=re.I)
 
 
-def is_name(name: str):
-    """For command annotation"""
-    if not name_pattern.match(name):
-        raise BadArgument("Le nom de l'utilisateur doit faire entre 5 et 25 caractères et ne contenir aucun caractère spécial.")
-    return name
 
 
 
@@ -105,7 +96,7 @@ async def change_name(ctx, name, new_name: is_name):
 async def list_players(ctx):
     gameManager = system["gameManager"]
     message = ctx.message
-    await gameManager.listPlayers(message.channel)
+    await gameManager.listPlayers(message.author.id, message.channel)
 
 
 # Enregistrement d'un joueur
@@ -170,7 +161,7 @@ async def mystats(ctx):
 async def ranking(ctx):
     gameManager = system["gameManager"]
     message = ctx.message
-    await gameManager.listRanking(message.channel)
+    await gameManager.listRanking(message.author.id, message.channel)
 
 
 @bot.command(name='passif')
@@ -202,7 +193,7 @@ async def cancel(ctx):
 async def show_actifs(ctx):
     gameManager = system["gameManager"]
     message = ctx.message
-    await gameManager.showActifs(message.channel)
+    await gameManager.showActifs(message.author.id, message.channel)
 
 
 @bot.command(name='myfights')
@@ -226,7 +217,8 @@ async def showStats(ctx, name_player2: str):
 async def s0command(ctx, name_player2: str):
     gameManager = system["gameManager"]
     message = ctx.message
-    await gameManager.s0command(message.author.id, name_player2, message.channel)
+    #await gameManager.s0command(message.author.id, name_player2, message.channel)
+    await gameManager.use_spell('s0cattack', message.author.id, message.channel, name_player2)
 
 @bot.command(name="fallellyss")
 @commands.dm_only()
@@ -252,6 +244,27 @@ async def mysignature(ctx):
     await gameManager.mysignature(message.author.id, message.channel)
 
 
+@bot.command(name="addwin")
+@commands.dm_only()
+async def addWin(ctx, name_player2: is_name, nb_add:int):
+    gameManager = system["gameManager"]
+    player = gameManager.dataManager.getPlayerByName(name_player2)
+    if player is None:
+        await ctx.send(f"Le joueur {name_player2} n'existe pas.")
+    else:
+        player.nbWin += nb_add
+        await gameManager.dataManager.syncRanking()
+        await ctx.send(f"On a bien ajouté les {nb_add} victoires")
+
+
+@bot.command(name="mobile")
+@commands.dm_only()
+async def mobile(ctx):
+    gameManager = system["gameManager"]
+    message = ctx.message
+
+    await gameManager.mobile(message.author.id, message.channel)
+    
 #@bot.command(name='help')
 # @commands.dm_only()
 # async def help(ctx):

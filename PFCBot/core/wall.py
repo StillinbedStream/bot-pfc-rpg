@@ -46,6 +46,15 @@ class WallOfPFC:
         
         # TODO: Si quelqu'un a perdu plus de X fois contre quelqu'un d'autres
     
+    async def onRankSync(self, old_ranking, ranking):
+        # Est-ce que le player est passé premier ?
+            if old_ranking[0] is not ranking[0]:
+                message = Message()
+                message.channel = self.__channel
+                message.content = f"<@!{ranking[0].idPlayer}> est passé premier ! <:stilli2Saintcoussin:707413286848692224> :first_place:"
+                await send_message(message)
+    
+        
     async def onFallEllyss(self, sender, receiver):
         # Si le winner a 5 victoires consécutives
         message = Message()

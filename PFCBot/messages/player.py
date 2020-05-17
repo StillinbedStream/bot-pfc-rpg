@@ -122,7 +122,6 @@ class ShowSignature(Message):
         
         self.channel = channel
 
-
 class NextFights(Message):
     def __init__(self, player, channel):
         
@@ -179,7 +178,9 @@ class MyStats(Message):
         self.embed.add_field(name="looses cons", value=f"{player.nbLooseCons}", inline=True)
         self.embed.add_field(name="looses cons max", value=f"{player.nbLooseConsMax}", inline=True)
 
-        self.embed.add_field(name="papoules", value=f"{player.coins} :chicken:", inline=True)
+        self.embed.add_field(name="tokens envoyés", value=f"{player.coins} :ticket:", inline=True)
+        self.embed.add_field(name="tokens reçus", value=f"{player.sentTokens} :tickets:", inline=True)
+        self.embed.add_field(name="papoules", value=f"{player.receivedTokens} :chicken:", inline=True)
 
         self.channel = channel
 
@@ -198,9 +199,16 @@ class PlayerStats(Message):
         self.content = message
         self.channel = channel
 
-
 class NameChanged(Message):
     def __init__(self, name, new_name, channel=None):
         self.content = f"Le nom du joueur {name} a bien été remplacé par {new_name}"
+        self.channel = channel
+
+class MobileChanged(Message):
+    def __init__(self, player, channel=None):
+        if player.mobile:
+            self.content = f"Vous êtes passé en mode responsive"    
+        else:
+            self.content = f"Vous avez désactivé le mode responsive"
         self.channel = channel
 
