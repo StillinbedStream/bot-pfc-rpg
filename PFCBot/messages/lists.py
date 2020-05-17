@@ -42,6 +42,7 @@ class ListCurrentFights(Message):
 
 class Ranking(Message):
     def __init__(self, player, ranking, guild, channel=None):
+        max_displayed = 20
         self.embed = discord.Embed()
         self.embed.title = "Le classement :"
         self.embed.description = ""
@@ -49,16 +50,24 @@ class Ranking(Message):
         
         player_m = guild.get_member(player.idPlayer)
         if player.mobile and player_m.is_on_mobile():
-            for i, player in enumerate(ranking):
+            self.embed.description += "Vous : \n"
+            self.embed.description += f"({player.rank}) {player.displayedName} [{player.score}]"
+            self.embed.description += "\n\n"
+            for i, player in enumerate(ranking[:max_displayed]):
                 self.embed.description+=f"({i}) {player.displayedName} [{player.score} pts]\n"
         else:
             players_ranks = ""
             players_names = ""
             players_scores = ""
-            for i, player in enumerate(ranking):
+            for i, player_ in enumerate(ranking[:max_displayed]):
                 players_ranks += f"({i})\n"
-                players_names += f"{player.displayedName} \n"
-                players_scores += f"{player.score} pts\n"
+                players_names += f"{player_.displayedName} \n"
+                players_scores += f"{player_.score} pts\n"
+            
+            players_ranks += f"\n({player.rank})"
+            players_names += f"\n{player.displayedName}"
+            players_scores += f"\n{player.score}"
+            
             
             self.embed.add_field(name="rank", value=players_ranks, inline=True)
             self.embed.add_field(name="name", value=players_names, inline=True)

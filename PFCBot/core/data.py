@@ -324,6 +324,14 @@ class Player(Entity):
     def mobile(self, mobile):
         self.__mobile = mobile
     
+
+    @property
+    def rank(self):
+        for i, player in enumerate(self.__dataManager.ranking):
+            if player == self:
+                return i
+        return -1
+    
 class Fight(Entity):
     def __init__(self, id_fight, player1, player2, dataManager):
         self.__dataManager = dataManager
