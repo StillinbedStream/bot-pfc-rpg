@@ -115,6 +115,7 @@ class GameManager:
 
         # Est-ce que joueur 2 est passif ?
         if player2.actif is False:
+            print(player2.name)
             print(player2.actif)
             return await send_message(Player2Passif(channel))
 
