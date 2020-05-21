@@ -125,9 +125,6 @@ async def attack(ctx, name_player2: is_name = "", provoc: str = "", provoc_image
         await gameManager.attackRandomPlayer(message.author.id, message.channel)
         return
     
-    if len(name_player2) > 15:
-        return
-    
     # Attaque
     player2 = gameManager.dataManager.getPlayerByName(name_player2)
     if player2 == None:
