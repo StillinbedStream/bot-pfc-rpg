@@ -75,8 +75,6 @@ class Ranking(Message):
             
         self.channel = channel
 
-
-
 class ShowActifs(Message):
     def __init__(self, player, players, guild, channel):
         self.embed = discord.Embed()

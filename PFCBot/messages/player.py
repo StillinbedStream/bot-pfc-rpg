@@ -158,10 +158,10 @@ class NextFights(Message):
         self.embed.description += message
         self.channel = channel
 
-class MyStats(Message):
+class PlayerStats(Message):
     def __init__(self, player, channel=None):
         self.embed = discord.Embed()
-        self.embed.title = f"Vos stats {player.name}"
+        self.embed.title = f"Les stats du joueur {player.name}"
 
         actif_message = "actif" if player.actif else "passif"
         in_fight_message = "non" if player.sentFight is None else "oui"
@@ -184,20 +184,10 @@ class MyStats(Message):
 
         self.channel = channel
 
-class PlayerStats(Message):
+class MyStats(PlayerStats):
     def __init__(self, player, channel=None):
-        actif_message = "actif" if player.actif else "passif"
-        message = "\n".join([
-            f"Statistiques de **{player.name}** : ",
-            f"win : {player.nbWin}",
-            f"loose : {player.nbLoose}",
-            f"Wins consécutives MAX : {player.nbWinConsMax}",
-            f"Looses consécutives MAX: {player.nbLooseConsMax}",
-            f"score : {player.score}",
-            f"état du compte : {actif_message}",
-        ])
-        self.content = message
-        self.channel = channel
+        super().__init__(player, channel)
+        self.embed.title = f"Vos stats {player.name}"
 
 class NameChanged(Message):
     def __init__(self, name, new_name, channel=None):

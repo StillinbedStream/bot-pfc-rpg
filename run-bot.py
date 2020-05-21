@@ -246,7 +246,7 @@ async def mysignature(ctx):
 
 @bot.command(name="addwin")
 @commands.dm_only()
-async def addWin(ctx, name_player2: is_name, nb_add:int):
+async def addWin(ctx, name_player2: is_name, nb_add: int):
     gameManager = system["gameManager"]
     player = gameManager.dataManager.getPlayerByName(name_player2)
     if player is None:
@@ -265,17 +265,16 @@ async def mobile(ctx):
 
     await gameManager.mobile(message.author.id, message.channel)
     
-#@bot.command(name='help')
-# @commands.dm_only()
-# async def help(ctx):
-#     gameManager = system["gameManager"]
-#     message = ctx.message
-#     await gameManager.help(message.channel)
+
+@bot.command(name="addpapoules")
+@commands.dm_only()
+async def addpapoules(ctx, name_player2: is_name, nb_add: int):
+    gameManager = system["gameManager"]
+    message = ctx.message
+    if message.author.id == 143773155549380608:
+        await gameManager.addCoins(name_player2, nb_add, message.channel)
 
 
-
-# !quit command
-            
 
 @bot.event
 async def on_disconnect():

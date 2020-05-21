@@ -115,6 +115,7 @@ class GameManager:
 
         # Est-ce que joueur 2 est passif ?
         if player2.actif is False:
+            print(player2.actif)
             return await send_message(Player2Passif(channel))
 
         # Est-ce que les joueurs 1 et 2 ne se sont pas déjà rencontrés
@@ -460,7 +461,7 @@ class GameManager:
 
         # Est-ce qu'on a suffisamment de coin pour lancer une s0ckattack ?
         if player1.coins < s0ca_price:
-            return await send_message(NotEnoughCoins(s0ca_price, channel))
+            return await send_message(NotEnoughCoins(player1, s0ca_price, channel))
         # On ajoute les tokens
         player1.sentTokens += 1
         player2.receivedTokens += 1
@@ -536,7 +537,7 @@ class GameManager:
 
         # Est-ce que le joueur a assez de papoules ?
         if player1.coins < price:
-            return await send_message(NotEnoughCoins(price, channel))
+            return await send_message(NotEnoughCoins(player1, price, channel))
 
 
 
@@ -604,8 +605,28 @@ class GameManager:
         player.mobile = not player.mobile
         await send_message(MobileChanged(player, channel))
 
+    async def addCoins(self, name_player2, nb_add, channel=None):
+        # Récupérer le joueur
+        player2 = self.dataManager.getPlayerByName(name_player2)
 
+        # Est-ce que le joueur existe ?
+        if player2 == None:
+            return await send_message(Player2NotRegistered(channel))
+        
+        # Est-ce que le player 2 existe dans le discord ?
+        c_player2 = None
+        if self.__client is not None:
+            c_player2 = self.__client.get_user(player2.idPlayer)
+            if c_player2 is None:
+                return await send_message(BugDiscordCommunication(channel))
 
+        # On ajoute les coins 
+        player2.coins += nb_add
+
+        await send_message(AddCoinsMessage(player2, nb_add, channel))
+
+        await send_message(await IncreasedCoins(player2, nb_add).direct_message(c_player2))
+        
     # Load and save methods
     async def load_game(self):
         '''
