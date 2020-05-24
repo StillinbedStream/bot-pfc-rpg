@@ -8,6 +8,7 @@ from datetime import datetime
 from datetime import timedelta 
 from copy import deepcopy
 
+from PFCBot.messages.message import send_message
 from PFCBot.messages.player import *
 import PFCBot.core.engine
 
@@ -508,6 +509,14 @@ class DataManager():
         self.__fights_indexed = {}
         self.__wall_of_pfc = {}
 
+        self.__chan_information = None
+        self.__ranking_message = None
+
+        self.__guild = None
+        self.__client = None
+
+        self.__old_rank = None
+
         # Counters
         self.__id_counter_fights = 0
 
@@ -538,6 +547,41 @@ class DataManager():
     @wallOfPFC.setter
     def wallOfPFC(self, wall_of_pfc):
         self.__wall_of_pfc = wall_of_pfc
+        
+    @property
+    def rankingMessage(self):
+        return self.__ranking_message
+    
+    @rankingMessage.setter
+    def rankingMessage(self, ranking_message):
+        self.__ranking_message = ranking_message
+
+
+    @property 
+    def chanInformation(self):
+        return self.__chan_information
+    
+    @chanInformation.setter
+    def chanInformation(self, chan_information):
+        self.__chan_information = chan_information
+    
+
+    @property
+    def guild(self):
+        return self.__guild
+    
+    @guild.setter
+    def guild(self, guild):
+        self.__guild = guild
+    
+    @property
+    def client(self):
+        return self.__client
+    
+    @client.setter
+    def client(self, client):
+        self.__client = client
+    
 
     # Players methods
     def getPlayerById(self, id_player):
@@ -678,6 +722,7 @@ class DataManager():
         return fights
     
 
+    
 
     # Save and load
     def save_json(self, file):
@@ -692,10 +737,11 @@ class DataManager():
 
             # Quelques données
             data["id_counter_fights"] = self.__id_counter_fights
+            data["id_ranking_message"] = self.rankingMessage.id
             to_write = json.dumps(data)
             f.write(to_write)
 
-    async def load_json(self, file):
+    async def load_json(self, file, client):
         data = None
         with open(file, "r") as f:
             data = json.load(f)
@@ -708,6 +754,12 @@ class DataManager():
             self.__fights.append(Fight(0, None, None, self).hydrate(fight_dict))
         
         self.__id_counter_fights = data["id_counter_fights"]
+        if "id_ranking_message" in data:
+            self.id_ranking_message = data["id_ranking_message"]
+        else:
+            self.id_ranking_message = None
+            
+
         self.indexLists()
         await self.syncRanking()
 
@@ -717,9 +769,20 @@ class DataManager():
             Synchronise le classement quand c'est demandé pour mettre à jour la 
             liste des utilisateurs
         '''
-        self.old_rank = self.ranking
+        
+        self.__old_rank = self.ranking
         self.ranking = [v for k, v in sorted(self.__players_indexed.items(), key=lambda item: item[1].score, reverse=True)]
 
-        if self.wallOfPFC is not None and self.old_rank != {}:
-            await self.wallOfPFC.onRankSync(self.old_rank, self.ranking)
+        if self.__old_rank == None:
+            return
+        
+        # Envoyer un message à tous les utilisateurs qui ont changé de rang
+        for i, player in enumerate(self.__old_rank):
+            # Si le joueur a perdu des places
+            if i != player.rank:
+                await send_message(await ChangeRank(player, i, player.rank).direct_message_to_player(player, self.client))
+
+
+        if self.wallOfPFC is not None and self.__old_rank != {}:
+            await self.wallOfPFC.onRankSync(self.__old_rank, self.ranking)
         

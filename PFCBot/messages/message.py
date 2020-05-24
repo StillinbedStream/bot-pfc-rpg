@@ -9,7 +9,18 @@ async def send_message(message, channel=None):
             raise exceptions.channelUndefined()
         else:
             message.channel = channel
-    await message.channel.send(message.content, embed=message.embed)
+    return await message.channel.send(message.content, embed=message.embed)
+
+
+
+async def edit_message(message_to_edit, new_message, channel=None):
+    '''
+
+    '''
+    return await message_to_edit.edit(content=new_message.content, embed=new_message.embed)
+    
+
+
 
 # Classe mère des messages
 class Message(discord.Message):
@@ -51,6 +62,15 @@ class Message(discord.Message):
     def embed(self, embed):
         self.__embed = embed
     
+    async def direct_message_to_player(self, player, client):
+        print(f"id_player ici : {player.idPlayer}")
+        c_player = client.get_user(player.idPlayer)
+        if c_player is None:
+            print("On a un c_player None")
+            return self
+        else:
+            return await self.direct_message(c_player)
+
     async def direct_message(self, user):
         '''
             Méthode chainable qui permet de configurer le message pour 

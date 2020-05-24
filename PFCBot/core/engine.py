@@ -12,6 +12,7 @@ import json
 
 # Import des messages
 from PFCBot.messages.message import send_message
+from PFCBot.messages.message import edit_message
 from PFCBot.messages.s0cattack import *
 from PFCBot.messages.player import *
 from PFCBot.messages.fights import *
@@ -44,6 +45,9 @@ class GameManager:
     def __init__(self, wallOfPFC, client=None, guild=None):
         self.__dataManager = DataManager()
         self.__dataManager.wallOfPFC = wallOfPFC
+        self.__dataManager.client = client
+        self.__dataManager.guild = guild
+        
         self.__wallOfPFC = wallOfPFC
         self.__client = client
         self.__guild = guild
@@ -262,7 +266,7 @@ class GameManager:
                     looser_player.nbLooseConsMax = looser_player.nbLooseCons
 
                 self.dataManager.endFight(fight)
-                await self.dataManager.syncRanking()
+                await self.update_ranking()
 
                 # Envoyer le message à la bonne personne
                 if winner_id == id_player:
@@ -487,7 +491,7 @@ class GameManager:
             await send_message(await TokenSent(player2).direct_message(c_player1))
             await send_message(await TokenReceived(player1).direct_message(c_player2))
         
-        await self.dataManager.syncRanking()
+        await self.update_ranking()
         
     async def use_spell(self, spell, id_player, channel=None, *args):
         
@@ -552,7 +556,7 @@ class GameManager:
         player1.coins -= price
 
         
-        await self.dataManager.syncRanking()
+        await self.update_ranking()
         # Créer le DM de Joueur 1
         c_player2 = None
         if self.__client is not None:
@@ -628,13 +632,64 @@ class GameManager:
 
         await send_message(await IncreasedCoins(player2, nb_add).direct_message(c_player2))
         
+    async def update_ranking(self):
+        await self.dataManager.syncRanking()
+        await self.update_ranking_message()
+    
+
+    # Messages
+    async def update_ranking_message(self):
+        '''
+        This function update the ranking message.
+        An other way to programme it could be to have a list of messages to update.
+        '''
+
+        # Si le chan information n'est pas modifié, on ne fait rien
+        if self.dataManager.chanInformation == None:
+            return
+        
+        # Sinon, on vérifie si un identifiant de message existe déjà ou si le message n'est pas dans le chan
+        if self.dataManager.id_ranking_message == None or await self.dataManager.chanInformation.fetch_message(self.dataManager.id_ranking_message) is None:
+            # Il faut alors créer le message
+            print("create new message")
+            self.dataManager.rankingMessage = await send_message(OfficialRanking(self.dataManager.ranking, self.guild, self.dataManager.chanInformation))
+            print(self.dataManager.rankingMessage)
+        # Sinon le message existe
+        else:
+            print("Edit message")
+            # mettre à jour le message
+            self.dataManager.rankingMessage = await self.dataManager.chanInformation.fetch_message(self.dataManager.id_ranking_message)
+            print(f"get message {self.dataManager.rankingMessage}")
+            await edit_message(self.dataManager.rankingMessage, OfficialRanking(self.dataManager.ranking, self.guild))
+
+
+    async def init_messages(self, id_info_channel):
+        '''
+        This function initializes all the messages. If it's not created, the message is so sent and its id saved
+        on dataManager.
+        '''
+        # On récupère le channel d'informations
+        info_channel = self.guild.get_channel(id_info_channel)
+
+        # Si le channel n'existe pas, juste on l'ignore
+        if info_channel == None:
+            return
+        # Sinon, on l'enregistre dans le dataManager
+        else:
+            print(info_channel)
+            self.dataManager.chanInformation = info_channel
+            print(f"test : {self.dataManager.chanInformation}")
+        
+        await self.update_ranking_message()
+
+
     # Load and save methods
     async def load_game(self):
         '''
         Charger les données du jeu
         '''
         if os.path.isfile(self.DATA_FILE):
-            await self.dataManager.load_json(self.DATA_FILE)
+            await self.dataManager.load_json(self.DATA_FILE, self.client)
         
     def save_game(self):
         '''

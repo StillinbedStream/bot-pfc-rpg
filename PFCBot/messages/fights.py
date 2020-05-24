@@ -92,7 +92,7 @@ class FightsInit(Message):
 class SignatureWinMessage(Message):
     def __init__(self, winner, looser, channel=None):
         self.embed = discord.Embed()
-        self.embed.title=f"Le joueur {winner.name} vous a envoyé une signature car vous êts un looser"
+        self.embed.title=f"Le joueur {winner.name} vous a envoyé une signature car vous êtes un looser"
         self.embed.description = f"{winner.signature}"
         if winner.signatureImage != "":
             self.embed.set_image(url=winner.signatureImage)

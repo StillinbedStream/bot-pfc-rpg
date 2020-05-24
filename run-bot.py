@@ -24,7 +24,9 @@ TOKEN = os.getenv("DISCORD_TOKEN")
 GUILD = os.getenv('DISCORD_GUILD')
 WALL_OF_EPICNESS = os.getenv('WALL_OF_EPICNESS')
 GUILD_ID = int(os.getenv("GUILD_ID"))
+CHAN_INFORMATION = int(os.getenv("CHAN_INFORMATION"))
 
+print("chan_info: ", CHAN_INFORMATION)
 # Préparation client et variables
 bot = commands.Bot(command_prefix="!")
 
@@ -46,6 +48,10 @@ async def on_ready():
 
     gameManager = GameManager(wall.WallOfPFC(wall_of_epicness_channel), bot, bot.get_guild(GUILD_ID))
     await gameManager.load_game()
+    if CHAN_INFORMATION > 1:
+        print(f"Chan INFORMATION {CHAN_INFORMATION}")
+        await gameManager.init_messages(CHAN_INFORMATION)
+    
     system["gameManager"] = gameManager
 
 

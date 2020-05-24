@@ -202,3 +202,7 @@ class MobileChanged(Message):
             self.content = f"Vous avez désactivé le mode responsive"
         self.channel = channel
 
+class ChangeRank(Message):
+    def __init__(self, player, old_rank, new_rank, channel=None):
+        self.content = f"Vous êtes passé de la {old_rank}ème place à la {new_rank}ème place."
+        self.channel = channel

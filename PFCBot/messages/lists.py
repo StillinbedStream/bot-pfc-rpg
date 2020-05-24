@@ -75,6 +75,19 @@ class Ranking(Message):
             
         self.channel = channel
 
+
+class OfficialRanking(Message):
+    def __init__(self, ranking, guild, channel=None):
+        max_displayed = 20
+        self.embed = discord.Embed()
+        self.embed.title = "Le classement :"
+        self.embed.description = ""
+
+        for i, player in enumerate(ranking[:max_displayed]):
+            self.embed.description+=f"({i}) {player.displayedName} [{player.score} pts]\n"
+        
+        self.channel = channel
+
 class ShowActifs(Message):
     def __init__(self, player, players, guild, channel):
         self.embed = discord.Embed()
