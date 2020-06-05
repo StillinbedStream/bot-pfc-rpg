@@ -851,7 +851,7 @@ class DataManager():
         for fight_dict in data["fights"]:
             self.__fights.append(Fight(0, None, None, self).hydrate(fight_dict))
         
-        self.__id_counter_fights = data["counter_fights_id"]
+        self.__id_counter_fights = data.get("counter_fights_id", None)
         self.__ranking_message_id = data.get("ranking_message_id", None)
         self.__chan_information_id = data.get("chan_information_id", None)
         
