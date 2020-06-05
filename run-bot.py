@@ -290,6 +290,18 @@ async def setChannelInformation(ctx, channel_id: int):
     else:
         await ctx.channel.send("Le channel d'information a bien été configuré")
 
+
+@bot.command(name="reset-fights")
+@commands.dm_only()
+@commands.is_owner()
+async def resetFights(ctx):
+    gameManager = system["gameManager"]
+    gameManager.dataManager.resetFights()
+    await ctx.channel.send("Les combats ont bien été reset ! ")
+
+     
+
+
 @bot.event
 async def on_disconnect():
     print("Déconnexion du BOT")

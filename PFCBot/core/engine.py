@@ -702,7 +702,6 @@ class GameManager:
         await self.update_ranking_message()
         pass
 
-
     # Load and save methods
     async def load_game(self):
         '''

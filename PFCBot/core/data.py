@@ -73,6 +73,11 @@ class Player(Entity):
         self.__mobile = False
         
         
+    
+    def reset_fights(self):
+        self.__sent_fight = None
+        self.__received_fights = []
+    
     # name
     @property
     def name(self):
@@ -819,7 +824,14 @@ class DataManager():
         self.__fights_indexed_by_message[fight.idMessagePlayer1] = fight
         self.__fights_indexed_by_message[fight.idMessagePlayer2] = fight
 
-    
+    def resetFights(self):
+        for fight in self.fights:
+            print(fight)
+            self.endFight(fight)
+        
+        self.__fights = []
+        for player in self.players:
+            player.reset_fights()
 
     # Save and load
     def save_json(self, file):
