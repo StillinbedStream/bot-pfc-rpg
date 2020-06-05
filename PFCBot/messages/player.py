@@ -3,7 +3,9 @@ import discord
 
 class PlayerNotRegistered(Message):
     def __init__(self, channel=None):
-        self.content = "Tu n'es pas enregistré. Utilise la commande !register. !help pour en savoir plus.\nhttps://media.giphy.com/media/XZ39zg4naZ1O8/giphy.gif"
+        self.embed = discord.Embed()
+        self.embed.description = "Tu crois pouvoir me parler sans te register ? Go te register noob !\n\nUtilise la commande !register.\n\n!help pour en savoir plus."
+        self.embed.set_image(url="https://media.giphy.com/media/XZ39zg4naZ1O8/giphy.gif")
         self.channel = channel
 
 class Player2NotRegistered(Message):
@@ -80,7 +82,7 @@ class AlreadyActif(Message):
 
 class AlreadySentFight(Message):
     def __init__(self, fight, channel=None):
-        self.content = f"T'as déjà attaqué le joueur {fight.player2.name} !"
+        self.content = f"T'as déjà un combat en cours avec {fight.player2.name} ! Utilise !myfights pour voir tes combats encours."
         self.channel = channel
 
 class RegisterDone(Message):
@@ -146,6 +148,7 @@ class NextFights(Message):
         message += "\nCombats reçus :\n"
         if len(player.receivedFights) == 0:
             message += "Il n'y a pas de combats"
+        print(f"Received fights : {player.receivedFights}")
         for i, fight in enumerate(player.receivedFights):
             message += f"[{i}] {fight.player1.name} "
             if fight.alreadyVote(player):

@@ -57,7 +57,7 @@ class Spell():
         '''
         # Est-ce qu'on a assez de coins ? 
         if self.user.coins < self.price:
-            await send_message(NotEnoughCoins(self.price, channel))
+            await send_message(NotEnoughCoins(self.user, self.price, channel))
             return False
         return True
         
@@ -152,6 +152,7 @@ class S0cattackSpell(Spell):
             await send_message(await TokenSent(player2).direct_message(c_player1))
             await send_message(await TokenReceived(player1).direct_message(c_player2))
         
-        self.dataManager.syncRanking()
+        
+        await self.gameManager.update_ranking()
         await super().use(channel)
 

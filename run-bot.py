@@ -10,9 +10,12 @@ from discord.ext import commands
 from dotenv import load_dotenv
 from PFCBot.core.engine import GameManager
 from PFCBot.commands.converters import is_name
+from PFCBot.messages.message import send_message
+from PFCBot.messages.player import PlayerNotRegistered
 
 from discord.ext import commands
 from discord import Message
+
 
 
 
@@ -49,11 +52,9 @@ async def on_ready():
     gameManager = GameManager(wall.WallOfPFC(wall_of_epicness_channel), bot, bot.get_guild(GUILD_ID))
     await gameManager.load_game()
     if CHAN_INFORMATION > 1:
-        print(f"Chan INFORMATION {CHAN_INFORMATION}")
         await gameManager.init_messages(CHAN_INFORMATION)
     
     system["gameManager"] = gameManager
-
 
 
 
@@ -249,6 +250,7 @@ async def mysignature(ctx):
 
 @bot.command(name="addwin")
 @commands.dm_only()
+@commands.is_owner()
 async def addWin(ctx, name_player2: is_name, nb_add: int):
     gameManager = system["gameManager"]
     player = gameManager.dataManager.getPlayerByName(name_player2)
@@ -265,19 +267,28 @@ async def addWin(ctx, name_player2: is_name, nb_add: int):
 async def mobile(ctx):
     gameManager = system["gameManager"]
     message = ctx.message
-
     await gameManager.mobile(message.author.id, message.channel)
     
 
 @bot.command(name="addpapoules")
 @commands.dm_only()
+@commands.is_owner()
 async def addpapoules(ctx, name_player2: is_name, nb_add: int):
     gameManager = system["gameManager"]
     message = ctx.message
-    if message.author.id == 143773155549380608:
-        await gameManager.addCoins(name_player2, nb_add, message.channel)
+    await gameManager.addCoins(name_player2, nb_add, message.channel)
 
 
+@bot.command(name="set-chan-info")
+@commands.dm_only()
+@commands.is_owner()
+async def setChannelInformation(ctx, channel_id: int):
+    gameManager = system["gameManager"]
+    channel = gameManager.dataManager.setChannelInformationWithId(channel_id)
+    if channel is None:
+        await ctx.channel.send("Le channel d'information n'a pas été trouvé dans la guilde.")
+    else:
+        await ctx.channel.send("Le channel d'information a bien été configuré")
 
 @bot.event
 async def on_disconnect():
@@ -293,31 +304,32 @@ async def on_message(message):
         gameManager = system["gameManager"]
         if message.author == bot.user:
             return
-
         # Dans le cas où on est dans un MP (DM)
         if isinstance(message.channel, discord.DMChannel):
+            
+            
+            choices={
+                "pierre": "pierre",
+                "feuille": "feuille",
+                "ciseaux": "ciseaux",
+                "p":"pierre",
+                "f":"feuille",
+                "c":"ciseaux",
+                "✊": "pierre",
+                "✋": "feuille",
+                "✌️": "ciseaux"
+            }
 
-            # choose action
-            if message.content.lower() in ["pierre", "feuille", "ciseaux", "p", "f", "c"]:
-                choices={"p":"pierre", "f":"feuille", "c":"ciseaux"}
-                action = message.content.lower()
-                if action in choices:
-                    action = choices[action]
-                
+            action = message.content.lower()
+            if action in choices.keys():
+                action = choices[action]
                 await gameManager.actionPlayer(message.author.id, action, message.channel)
                 return gameManager.save_game()
 
-            if message.content == "!test":
-                print("Player dict: ", gameManager.dataManager.getPlayerById(message.author.id).dump_dict())
-                return
-            #     embed = discord.Embed()
-            #     embed.title = "Simple test !"
-            #     embed.type = "rich"
-            #     embed.description = "Un petite description"
-            #     embed.add_field(name="Message", value="Enregistrements", inline=True)
-            #     embed.add_field(name="Function", value="Des trucs de ouf", inline=True)
-            #     embed.add_field(name="Message", value="Enregistrements", inline=False)
-            #     return await message.channel.send(embed=embed)
+
+        elif message.content.startswith("!") :
+            await message.channel.send(f"Pour jouer au jeu, il faut m'envoyer un Direct Message (DM) <@{bot.user.id}>")
+        
         await bot.process_commands(message)
 
 
@@ -335,5 +347,43 @@ async def info_error_change_name(ctx, error):
 async def info_error_register(ctx, error):
     if isinstance(error, commands.BadArgument):
         await ctx.send(error)
+
+
+
+@bot.event
+async def on_raw_reaction_add(payload):
+    '''
+    payload.guild_id == None
+    payload.user_id # Pour vérifier que c'est bien l'utilisateur
+    payload.message_id # Pour vérifier que c'est bien sur un message d'un fight.
+    name
+    '''
+    gameManager = system["gameManager"]
+
+    if payload.guild_id == None:
+        
+        # Envoie la réaction
+        actions = {
+            "✊": "pierre",
+            "✋": "feuille",
+            "✌️": "ciseaux"
+        }
+
+        if payload.user_id != bot.user.id and payload.emoji.name in actions:
+            # On vérifie si c'est un message d'un fight.
+            fight = gameManager.dataManager.getFightByMessageId(payload.message_id)
+            if fight is None:
+                return
+            action = actions[payload.emoji.name]
+            
+            await gameManager.actionPlayerOnFight(payload.user_id, fight, action, bot.get_channel(payload.channel_id))
+        
+        if payload.user_id != bot.user.id and payload.emoji.name == "❌":
+            fight = gameManager.dataManager.getFightByMessageId(payload.message_id)
+            if fight is None:
+                return
+            
+            if fight.player1.idPlayer == payload.user_id and fight.player1.sentFight is fight:
+                await gameManager.cancelFight(payload.user_id, bot.get_channel(payload.channel_id))
 
 bot.run(TOKEN)

@@ -10,6 +10,7 @@ class AttackMySelf(Message):
 
 class Equality(Message):
     def __init__(self, player1, player2, channel=None):
+        #Todo: Ajouter le fight pour pouvoir ajouer des liens vers les messages des players.
         self.content = f"[{player1.getNbReceivedFights()}] Il y a eu égalité avec **{player2.name}** ! Rejouez."
         self.channel = channel
 
@@ -63,7 +64,9 @@ class FightCanceled(Message):
 
 class SentInvite(Message):
     def __init__(self, player1, player2, channel=None):
-        self.content = f"[{player1.getNbReceivedFights()}] {player2.name} a reçu l'invitation"
+        self.embed = discord.Embed()
+        self.embed.title = f"Duel envoyé à {player2.name}"
+        self.embed.description = f"Vous avez envoyé un duel à {player2.name}.\n \nAjoute une réaction à ce message pour répondre : \n ✊ \:fist\: \n ✋ \:raised_hand\: \n ✌️ \:v\: \n \n Ou envoie moi un DM :\n pierre (p), feuille (f), ou ciseaux (c)"
         self.channel = channel
 
 class DoTheChoice(Message):
@@ -73,7 +76,9 @@ class DoTheChoice(Message):
 
 class YouAreAttacked(Message):
     def __init__(self, player1, player2, channel=None):
-        self.content = f"[{player2.getNbReceivedFights()}] **{player1.name}** vous a défié"
+        self.embed = discord.Embed()
+        self.embed.title = f"{player1.name} vous a défié"
+        self.embed.description = f"{player1.name} vous a défié.\n \nPour répondre :\nAjoute une réaction à ce message pour répondre : \n ✊ \:fist\: \n ✋ \:raised_hand\: \n ✌️ \:v\: \n \n Ou envoie moi un DM :\n pierre (p), feuille (f), ou ciseaux (c)"
         self.channel = channel
 
 

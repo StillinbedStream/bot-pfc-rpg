@@ -1,4 +1,5 @@
 # TODO: Gérer la synchronisation du classement.
+from typing import List, Dict
 
 import pickle
 import exceptions
@@ -206,7 +207,7 @@ class Player(Entity):
         '''
         for i, f in enumerate(self.receivedFights):
             if fight == f:
-                del self.__received_fights[i]
+                self.__received_fights.pop(i)
                 return True
         return False
 
@@ -294,7 +295,6 @@ class Player(Entity):
             dt_futur = dt + TIME_DELTA_PLAYER_ENCOUNTERED
 
             if p is player:
-                print(f"Le joueur trouvé ! {p.name} | {player.name}")
                 return dt_futur - datetime.now()
         return None
 
@@ -302,10 +302,8 @@ class Player(Entity):
         for i, information in enumerate(reversed(self.__last_players_encountered)):
             dt = deepcopy(information[1])
             dt = dt + TIME_DELTA_PLAYER_ENCOUNTERED
-            print(dt)
             # Si le temps est dépassé
             if dt < datetime.now():
-                print("on rentre bien dans cette condition !")
                 del self.__last_players_encountered[0:len(self.__last_players_encountered) - i]
                 return
 
@@ -325,7 +323,6 @@ class Player(Entity):
     def mobile(self, mobile):
         self.__mobile = mobile
     
-
     @property
     def rank(self):
         for i, player in enumerate(self.__dataManager.ranking):
@@ -345,6 +342,9 @@ class Fight(Entity):
         self.__action_player1 = None
         self.__action_player2 = None
         self.__cancel = False
+
+        self.__id_message_player1 = None
+        self.__id_message_player2 = None
 
         if player1 is not None:
             player1.sentFight = self
@@ -440,6 +440,59 @@ class Fight(Entity):
             return True
         return False
 
+    @property
+    async def messagePlayer1(self):
+        if self.__dataManager.client.get_user(self.player1.idPlayer).dm_channel is None:
+            await self.__dataManager.client.get_user(self.player1.idPlayer).create_dm()
+        if self.__id_message_player1 is None:
+            return None
+        return await self.__dataManager.client.get_user(self.player1.idPlayer).dm_channel.fetch_message(self.__id_message_player1)
+    
+    @messagePlayer1.setter
+    def messagePlayer1(self, message):
+        self.__id_message_player1 = message.id
+    
+    @property
+    def idMessagePlayer1(self):
+        return self.__id_message_player1
+
+    @property
+    async def messagePlayer2(self):
+        if self.__dataManager.client.get_user(self.player2.idPlayer).dm_channel is None:
+            await self.__dataManager.client.get_user(self.player2.idPlayer).create_dm()
+        if self.__id_message_player2 is None:
+            return None
+        return await self.__dataManager.client.get_user(self.player2.idPlayer).dm_channel.fetch_message(self.__id_message_player2)
+
+    @messagePlayer2.setter
+    def messagePlayer2(self, message):
+        self.__id_message_player2 = message.id
+    
+    @property
+    def idMessagePlayer2(self):
+        return self.__id_message_player2
+
+    
+    @property
+    async def messageLooser(self):
+        if self.looser == None:
+            return None
+        if self.looser is self.player1:
+            return await self.__dataManager.client.get_user(self.player1.idPlayer).dm_channel.fetch_message(self.__id_message_player1)
+        else:
+            return await self.__dataManager.client.get_user(self.player2.idPlayer).dm_channel.fetch_message(self.__id_message_player2)
+    
+    @property
+    async def messageWinner(self):
+        if self.winner == None:
+            return None
+        if self.winner is self.player1:
+            return await self.__dataManager.client.get_user(self.player1.idPlayer).dm_channel.fetch_message(self.__id_message_player1)
+        else:
+            return await self.__dataManager.client.get_user(self.player2.idPlayer).dm_channel.fetch_message(self.__id_message_player2)
+    
+
+    
     def isFighting(self, player):
         '''
             Vérifie si le joueur est en train de combattre
@@ -494,7 +547,7 @@ class Fight(Entity):
 # -- DATA MANAGER
 class DataManager():
 
-    ranking = {}
+    ranking = []
 
     def __init__(self):
         '''
@@ -507,15 +560,17 @@ class DataManager():
 
         self.__fights = []
         self.__fights_indexed = {}
+        self.__fights_indexed_by_message = {}
         self.__wall_of_pfc = {}
 
-        self.__chan_information = None
-        self.__ranking_message = None
+        self.__ranking_message_id = None
+        self.__chan_information_id = None
 
         self.__guild = None
         self.__client = None
 
         self.__old_rank = None
+
 
         # Counters
         self.__id_counter_fights = 0
@@ -526,7 +581,7 @@ class DataManager():
         return self.__fights
     
     @fights.setter
-    def fights(self, fights):
+    def fights(self, fights: List[Fight]):
         self.__fights = fights
         self.__fights_indexed = {}
         for fight in self.fights:
@@ -548,22 +603,37 @@ class DataManager():
     def wallOfPFC(self, wall_of_pfc):
         self.__wall_of_pfc = wall_of_pfc
         
+
     @property
-    def rankingMessage(self):
-        return self.__ranking_message
-    
+    def channelInformation(self):
+        return self.guild.get_channel(self.__chan_information_id)
+
+    def setChannelInformationWithId(self, id_):
+        '''
+        Allow to change the id and check if the channel exists. 
+        Return the channel if exists
+        return false otherwise
+
+        '''
+        channel = self.guild.get_channel(id_)
+        if channel is not None:
+            self.__chan_information_id = id_
+        return channel
+        
+        
+    @property
+    async def rankingMessage(self):
+        chan_info = self.channelInformation
+        if chan_info is None or self.__ranking_message_id is None:
+            return None
+        try:
+            return await chan_info.fetch_message(self.__ranking_message_id)
+        except discord.errors.NotFound:
+            return None
+
     @rankingMessage.setter
-    def rankingMessage(self, ranking_message):
-        self.__ranking_message = ranking_message
-
-
-    @property 
-    def chanInformation(self):
-        return self.__chan_information
-    
-    @chanInformation.setter
-    def chanInformation(self, chan_information):
-        self.__chan_information = chan_information
+    def rankingMessage(self, message: discord.message):
+        self.__ranking_message_id = message.id
     
 
     @property
@@ -648,6 +718,13 @@ class DataManager():
             return self.__fights_indexed[id_fight]
         return None
 
+    def getFightByMessageId(self, id_message):
+        if id_message in self.__fights_indexed_by_message:
+            return self.__fights_indexed_by_message[id_message]
+        else:
+            return None
+    
+
     def getFight(self, id_player): 
         '''
             Retourne True si le joueur est en combat.
@@ -676,6 +753,8 @@ class DataManager():
         self.__id_counter_fights += 1
         self.__fights.append(fight)
         self.__fights_indexed[fight.idFight] = fight
+        self.__fights_indexed_by_message[fight.idMessagePlayer1] = fight
+        self.__fights_indexed_by_message[fight.idMessagePlayer2] = fight
     
     def getCurrentFights(self):
         '''
@@ -687,11 +766,23 @@ class DataManager():
                 current_fights.append(fight)
         return current_fights
     
-    def endFight(self, fight):
+    async def endFight(self, fight: Fight):
         '''
-            Réalise toutes les actions de synchronise en fin de combat
+            Réalise toutes les actions de synchronisation en fin de combat
             comme mettre à jour les variables in_fight de chaque joueur.
         '''
+        # Message players
+        messagePlayer1 = await fight.messagePlayer1
+        messagePlayer2 = await fight.messagePlayer2
+
+        # Pop from indexes
+        if messagePlayer1 is not None:
+            self.__fights_indexed_by_message.pop(messagePlayer1.id, None)
+        if messagePlayer2 is not None:
+            self.__fights_indexed_by_message.pop(messagePlayer2.id, None)
+        #self.__fights_indexed.pop(fight.idFight, None)
+        
+        # Remove from players
         fight.player1.sentFight = None
         fight.player2.removeReceivedFight(fight)
     
@@ -707,6 +798,8 @@ class DataManager():
         self.__fights_indexed = {}
         for fight in self.fights:
             self.__fights_indexed[fight.idFight] = fight
+            self.__fights_indexed_by_message[fight.idMessagePlayer1] = fight
+            self.__fights_indexed_by_message[fight.idMessagePlayer2] = fight
         
     def changeName(self, player, new_name):
         self.__players_ind_name.pop(player.name)
@@ -721,6 +814,10 @@ class DataManager():
         
         return fights
     
+    def indexFight(self, fight):
+        self.__fights_indexed[fight.idFight] = fight
+        self.__fights_indexed_by_message[fight.idMessagePlayer1] = fight
+        self.__fights_indexed_by_message[fight.idMessagePlayer2] = fight
 
     
 
@@ -736,8 +833,9 @@ class DataManager():
             data["fights"] = [fight.get_dict_json() for fight in self.fights]
 
             # Quelques données
-            data["id_counter_fights"] = self.__id_counter_fights
-            data["id_ranking_message"] = self.rankingMessage.id
+            data["counter_fights_id"] = self.__id_counter_fights
+            data["ranking_message_id"] = self.__ranking_message_id
+            data["chan_information_id"] = self.__chan_information_id
             to_write = json.dumps(data)
             f.write(to_write)
 
@@ -753,13 +851,10 @@ class DataManager():
         for fight_dict in data["fights"]:
             self.__fights.append(Fight(0, None, None, self).hydrate(fight_dict))
         
-        self.__id_counter_fights = data["id_counter_fights"]
-        if "id_ranking_message" in data:
-            self.id_ranking_message = data["id_ranking_message"]
-        else:
-            self.id_ranking_message = None
-            
-
+        self.__id_counter_fights = data["counter_fights_id"]
+        self.__ranking_message_id = data.get("ranking_message_id", None)
+        self.__chan_information_id = data.get("chan_information_id", None)
+        
         self.indexLists()
         await self.syncRanking()
 
@@ -771,6 +866,10 @@ class DataManager():
         '''
         
         self.__old_rank = self.ranking
+        if len(self.players) == 0: 
+            self.ranking = []
+            return 
+        
         self.ranking = [v for k, v in sorted(self.__players_indexed.items(), key=lambda item: item[1].score, reverse=True)]
 
         if self.__old_rank == None:
