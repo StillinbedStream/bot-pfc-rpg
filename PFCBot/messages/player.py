@@ -154,7 +154,7 @@ class NextFights(Message):
             elif not next_fight_pointed:
                 message += ":point_left:"
                 message_player = await player.sentFight.getMessageOfPlayer(player)
-                message += f" [\[lien\]]({message_player.jump_url}) "
+                message += f" [[lien]]({message_player.jump_url}) "
                 next_fight_pointed = True
             message += "\n"
                 
@@ -170,7 +170,7 @@ class NextFights(Message):
             elif not next_fight_pointed:
                 message += ":point_left:"
                 message_player = await fight.getMessageOfPlayer(player)
-                message += f" [\[lien\]]({message_player.jump_url}) "
+                message += f" [[lien]]({message_player.jump_url}) "
                 next_fight_pointed = True
             message += "\n"
 
