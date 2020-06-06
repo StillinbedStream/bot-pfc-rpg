@@ -152,7 +152,7 @@ class NextFights(Message):
             if player.sentFight.alreadyVote(player):
                 message += ":ok_hand:"
             elif not next_fight_pointed:
-                message += ":point_left:\n"
+                message += ":point_left:"
                 message_player = await player.sentFight.getMessageOfPlayer(player)
                 message += f" [\[lien\]]({message_player.jump_url}) "
                 next_fight_pointed = True
@@ -168,7 +168,7 @@ class NextFights(Message):
             if fight.alreadyVote(player):
                 message += ":ok_hand:"
             elif not next_fight_pointed:
-                message += ":point_left: "
+                message += ":point_left:"
                 message_player = await fight.getMessageOfPlayer(player)
                 message += f" [\[lien\]]({message_player.jump_url}) "
                 next_fight_pointed = True
