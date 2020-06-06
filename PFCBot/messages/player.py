@@ -143,18 +143,17 @@ class NextFights(Message):
         self.embed.title = f"Mes prochains combats"
         self.embed.description = ""
         
-        message = "Combat envoyé : "
+        message = "Combat envoyé : \n"
         next_fight_pointed = False
         if player.sentFight is None:
             message += "Aucun\n"
         else:
-            message += f"**{player.sentFight.player2.name}** "
+            message_player = await player.sentFight.getMessageOfPlayer(player)
+            message += f"[[lien]]({message_player.jump_url}) **{player.sentFight.player2.name}** "
             if player.sentFight.alreadyVote(player):
                 message += ":ok_hand:"
             elif not next_fight_pointed:
                 message += ":point_left:"
-                message_player = await player.sentFight.getMessageOfPlayer(player)
-                message += f" [[lien]]({message_player.jump_url}) "
                 next_fight_pointed = True
             message += "\n"
                 
@@ -164,13 +163,12 @@ class NextFights(Message):
             message += "Il n'y a pas de combats"
         print(f"Received fights : {player.receivedFights}")
         for i, fight in enumerate(player.receivedFights):
-            message += f"[{i}] {fight.player1.name} "
+            message_player = await fight.getMessageOfPlayer(player)
+            message += f"[[lien]]({message_player.jump_url}) {fight.player1.name} "
             if fight.alreadyVote(player):
                 message += ":ok_hand:"
             elif not next_fight_pointed:
                 message += ":point_left:"
-                message_player = await fight.getMessageOfPlayer(player)
-                message += f" [[lien]]({message_player.jump_url}) "
                 next_fight_pointed = True
             message += "\n"
 
