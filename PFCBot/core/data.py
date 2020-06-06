@@ -239,6 +239,11 @@ class Player(Entity):
     def receivedTokens(self):
         return self.__received_tokens
     
+    @property
+    def receivedFightsIds(self):
+        return self.__received_fights
+    
+    
     @receivedTokens.setter
     def receivedTokens(self, received_tokens):
         self.__received_tokens = received_tokens
