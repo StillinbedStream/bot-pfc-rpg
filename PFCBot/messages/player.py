@@ -132,8 +132,13 @@ class SignatureNotWellDefined(Message):
         self.channel = channel
 
 class NextFights(Message):
-    def __init__(self, player, channel):
-        
+    def __init__(self, channel=None):
+        self.embed = discord.Embed()
+        self.embed.title = ""
+        self.channel = channel
+        pass
+
+    async def generate(self, player, channel):
         self.embed = discord.Embed()
         self.embed.title = f"Mes prochains combats"
         self.embed.description = ""
@@ -147,7 +152,9 @@ class NextFights(Message):
             if player.sentFight.alreadyVote(player):
                 message += ":ok_hand:"
             elif not next_fight_pointed:
-                message += ":point_left:"
+                message += ":point_left:\n"
+                message_player = await player.sentFight.getMessageOfPlayer(player)
+                message += f" [\[lien\]]({message_player.jump_url}) "
                 next_fight_pointed = True
             message += "\n"
                 
@@ -161,12 +168,16 @@ class NextFights(Message):
             if fight.alreadyVote(player):
                 message += ":ok_hand:"
             elif not next_fight_pointed:
-                message += ":point_left:"
+                message += ":point_left: "
+                message_player = await fight.getMessageOfPlayer(player)
+                message += f" [\[lien\]]({message_player.jump_url}) "
                 next_fight_pointed = True
             message += "\n"
 
         self.embed.description += message
         self.channel = channel
+        return self
+
 
 class PlayerStats(Message):
     def __init__(self, player, channel=None):

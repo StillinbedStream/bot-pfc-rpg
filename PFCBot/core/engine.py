@@ -520,7 +520,7 @@ class GameManager:
         if player is None:
             return await send_message(PlayerNotRegistered(channel))
 
-        await send_message(NextFights(player, channel))
+        await send_message(await NextFights().generate(player, channel))
 
     async def showPlayerStats(self, name, channel=None):
         '''

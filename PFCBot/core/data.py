@@ -460,6 +460,18 @@ class Fight(Entity):
             return None
         return await self.__dataManager.client.get_user(self.player1.idPlayer).dm_channel.fetch_message(self.__id_message_player1)
     
+
+    async def getMessageOfPlayer(self, player: Player):
+        '''
+        Return fight message of given player
+        or return None
+        '''
+        if self.player1 is player:
+            return await self.messagePlayer1
+        if self.player2 is player:
+            return await self.messagePlayer2
+        return None
+    
     @messagePlayer1.setter
     def messagePlayer1(self, message):
         self.__id_message_player1 = message.id
