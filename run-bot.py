@@ -258,7 +258,7 @@ async def addWin(ctx, name_player2: is_name, nb_add: int):
         await ctx.send(f"Le joueur {name_player2} n'existe pas.")
     else:
         player.nbWin += nb_add
-        await gameManager.dataManager.syncRanking()
+        await gameManager.update_ranking()
         await ctx.send(f"On a bien ajouté les {nb_add} victoires")
 
 
@@ -372,7 +372,7 @@ async def on_raw_reaction_add(payload):
     '''
     gameManager = system["gameManager"]
 
-    if payload.guild_id == None:
+    if payload.guild_id == None and payload.user_id != bot.user.id:
         
         # Envoie la réaction
         actions = {
@@ -381,6 +381,12 @@ async def on_raw_reaction_add(payload):
             "✌️": "ciseaux"
         }
 
+        player_c = bot.get_user(payload.user_id)
+        if player_c.dm_channel is None:
+            await player_c.create_dm()
+        player_c.dm_channel
+        
+        
         if payload.user_id != bot.user.id and payload.emoji.name in actions:
             # On vérifie si c'est un message d'un fight.
             fight = gameManager.dataManager.getFightByMessageId(payload.message_id)
@@ -388,7 +394,7 @@ async def on_raw_reaction_add(payload):
                 return
             action = actions[payload.emoji.name]
             
-            await gameManager.actionPlayerOnFight(payload.user_id, fight, action, bot.get_channel(payload.channel_id))
+            await gameManager.actionPlayerOnFight(payload.user_id, fight, action, bot.get_channel(player_c.dm_channel))
         
         if payload.user_id != bot.user.id and payload.emoji.name == "❌":
             fight = gameManager.dataManager.getFightByMessageId(payload.message_id)
@@ -396,6 +402,6 @@ async def on_raw_reaction_add(payload):
                 return
             
             if fight.player1.idPlayer == payload.user_id and fight.player1.sentFight is fight:
-                await gameManager.cancelFight(payload.user_id, bot.get_channel(payload.channel_id))
+                await gameManager.cancelFight(payload.user_id, bot.get_channel(player_c.dm_channel))
 
 bot.run(TOKEN)

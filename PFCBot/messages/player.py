@@ -124,6 +124,13 @@ class ShowSignature(Message):
         
         self.channel = channel
 
+class SignatureNotWellDefined(Message):
+    def __init__(self, channel=None):
+        self.embed = discord.Embed()
+        self.embed.title=f"Votre signature n'est pas conforme"
+        self.embed.description = f"Il y a eu un problème avec votre signature. Veuillez vérifier que l'url que vous avez entré pour le gif est conforme (si vous en avez un).\n\nSinon, veuillez contacter l'administrateur du jeu."
+        self.channel = channel
+
 class NextFights(Message):
     def __init__(self, player, channel):
         
@@ -209,3 +216,4 @@ class ChangeRank(Message):
     def __init__(self, player, old_rank, new_rank, channel=None):
         self.content = f"Vous êtes passé de la {old_rank}ème place à la {new_rank}ème place."
         self.channel = channel
+

@@ -78,5 +78,7 @@ class Message(discord.Message):
         '''
         if user.dm_channel is None:
             await user.create_dm()
+        if user.dm_channel is None:
+            print("ON a encore un problème ! ")
         self.channel = user.dm_channel
         return self

@@ -320,11 +320,17 @@ class GameManager:
                 # Envoyer le message à la bonne personne
                 if winner_id == id_player:
                     if winner_player.signature != "":
-                        await send_message(await SignatureWinMessage(winner_player, looser_player).direct_message(c_player2))
+                        try:
+                            await send_message(await SignatureWinMessage(winner_player, looser_player).direct_message(c_player2))
+                        except discord.errors.HTTPException as e:
+                            await send_message(await SignatureNotWellDefined().direct_message(c_player1))
                 else:
                     if winner_player.signature != "":
-                        await send_message(await SignatureWinMessage(winner_player, looser_player).direct_message(c_player1))
-                
+                        try:
+                            await send_message(await SignatureWinMessage(winner_player, looser_player).direct_message(c_player1))
+                        except discord.errors.HTTPException as e:
+                            await send_message(await SignatureNotWellDefined().direct_message(c_player1))
+                        
                 message_winner = await fight.messageWinner
                 message_winner.embeds[0].description += f"\n\n **Tu as gagné contre {looser_player.name} !** :partying_face:"
 
@@ -632,7 +638,10 @@ class GameManager:
             return send_message(PlayerNotRegistered(channel))
         
         # Envoyer la signature au joueur
-        await send_message(ShowSignature(player, channel))
+        try:
+            await send_message(ShowSignature(player, channel))
+        except discord.errors.HTTPException as e:
+            await send_message(SignatureNotWellDefined(channel))
 
     async def mobile(self, id_player, channel=None):
 
@@ -700,7 +709,6 @@ class GameManager:
 
     async def init_messages(self, id_info_channel):
         await self.update_ranking_message()
-        pass
 
     # Load and save methods
     async def load_game(self):
