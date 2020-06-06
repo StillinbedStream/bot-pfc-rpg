@@ -239,7 +239,7 @@ class Player(Entity):
     def receivedFightsIds(self):
         return self.__received_fights
     
-    
+
     @property
     def receivedTokens(self):
         return self.__received_tokens
