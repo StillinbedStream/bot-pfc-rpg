@@ -402,6 +402,6 @@ async def on_raw_reaction_add(payload):
                 return
             
             if fight.player1.idPlayer == payload.user_id and fight.player1.sentFight is fight:
-                await gameManager.cancelFight(payload.user_id, bot.get_channel(player_c.dm_channel))
+                await gameManager.cancelFight(payload.user_id, bot.get_channel(payload.channel_id))
 
 bot.run(TOKEN)

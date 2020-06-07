@@ -910,8 +910,12 @@ class DataManager():
         for i, player in enumerate(self.__old_rank):
             # Si le joueur a perdu des places
             if i != player.rank:
-                await send_message(await ChangeRank(player, i, player.rank).direct_message_to_player(player, self.client))
-
+                try:
+                    await send_message(await ChangeRank(player, i, player.rank).direct_message_to_player(player, self.client))
+                except discord.errors.Forbidden as e:
+                    print(f"Forbbidden : On n'a pas envoyé de message au joueur {player.name} parce qu'il n'existe plus (FORBIDDEN)")
+                except discord.errors.channelUndefined as e:
+                    print(f"Channel Undefined : On n'a pas envoyé de message au joueur {player.name} parce qu'il n'existe plus (FORBIDDEN)")
 
         if self.wallOfPFC is not None and self.__old_rank != {}:
             await self.wallOfPFC.onRankSync(self.__old_rank, self.ranking)

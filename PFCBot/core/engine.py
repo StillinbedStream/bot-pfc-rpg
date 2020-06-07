@@ -275,8 +275,8 @@ class GameManager:
                 message_player2.embeds[0].description += f"\n\n **Egalité, veuillez rejouer.** :arrows_counterclockwise:"
                 await message_player2.edit(embed=message_player2.embeds[0])
 
-                #await send_message(await Equality(player1, player2).direct_message(c_player1))
-                #await send_message(await Equality(player2, player1).direct_message(c_player2))
+                
+                await send_message(await Equality(player2, player1, message_player1).direct_message(c_player2))
                 
             # Cas le combat est fini !
             else:
@@ -457,6 +457,9 @@ class GameManager:
         if message_player2 is not None:
             message_player2.embeds[0].description += f"\n\n **Le combat a été annulé ! :x:**"
             await message_player2.edit(embed=message_player2.embeds[0])
+        
+        # Envoyer un message au joueur qui cancel pour qu'il sache que ça a bien été supprimé
+        await send_message(FightCanceled(message_player1, channel))
 
 
     async def changeName(self, name, new_name, channel=None):

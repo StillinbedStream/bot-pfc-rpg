@@ -9,10 +9,11 @@ class AttackMySelf(Message):
         self.channel = channel
 
 class Equality(Message):
-    def __init__(self, player1, player2, channel=None):
+    def __init__(self, player1, player2, message_player, channel=None):
         #Todo: Ajouter le fight pour pouvoir ajouer des liens vers les messages des players.
-        self.content = f"[{player1.getNbReceivedFights()}] Il y a eu égalité avec **{player2.name}** ! Rejouez."
-        self.channel = channel
+        self.embed = discord.Embed()
+        self.embed.title = f"Egalité avec {player2.name}"
+        self.embed.description = f"[[lien]({message_player.jump_url})] Il y a eu égalité avec **{player2.name}** ! Rejouez."
 
 class WinMessage(Message):
     def __init__(self, winner, looser, channel=None):
@@ -58,8 +59,11 @@ class FightCanceledByPlayer1(Message):
         self.channel = channel
 
 class FightCanceled(Message):
-    def __init__(self, channel=None):
-        self.content = "On a bien supprimé ton combat ! Retourne te battre moussaillon ! https://media.giphy.com/media/ihMKNwb2yPEbWJiAmn/giphy.gif"
+    def __init__(self, message_player, channel=None):
+        self.embed = discord.Embed()
+        self.embed.title = f"Annulation du combat"
+        self.embed.description = f"[[lien]]({message_player.jump_url}) On a bien supprimé ton combat ! Retourne te battre moussaillon !"
+        self.embed.set_image(url="https://media.giphy.com/media/ihMKNwb2yPEbWJiAmn/giphy.gif")
         self.channel = channel
 
 class SentInvite(Message):
