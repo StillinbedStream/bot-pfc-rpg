@@ -914,7 +914,7 @@ class DataManager():
                     await send_message(await ChangeRank(player, i, player.rank).direct_message_to_player(player, self.client))
                 except discord.errors.Forbidden as e:
                     print(f"Forbbidden : On n'a pas envoyé de message au joueur {player.name} parce qu'il n'existe plus (FORBIDDEN)")
-                except discord.errors.ChannelUndefined as e:
+                except discord.errors.HTTPException as e:
                     print(f"Channel Undefined : On n'a pas envoyé de message au joueur {player.name} parce qu'il n'existe plus (FORBIDDEN)")
 
         if self.wallOfPFC is not None and self.__old_rank != {}:

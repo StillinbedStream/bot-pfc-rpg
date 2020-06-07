@@ -343,7 +343,13 @@ class GameManager:
 
                 # Management of WallOfPFC
                 await self.__wallOfPFC.onWin(fight)
-        pass
+        
+        # Et si y'a pas de winner, on envoie un message à l'autre joueur
+        else:
+            message_player = await fight.getMessageOfPlayer(player2)
+            if message_player is not None:
+                await send_message(await PlayerMadeChoice(player1, player2, message_player).direct_message(c_player2))
+
 
     async def actionPlayer(self, id_player, action, channel=None):
         '''

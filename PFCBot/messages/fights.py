@@ -29,8 +29,10 @@ class PlayerMadeChoice(Message):
     '''
         "[{player2.getNbReceivedFights()}] **{player1.name}** a fait son choix"
     '''
-    def __init__(self, player1, player2, channel=None):
-        self.content = f"[{player2.getNbReceivedFights()}] **{player1.name}** a fait son choix"
+    def __init__(self, player1, player2, message_player, channel=None):
+        self.embed = discord.Embed()
+        self.embed.title = "Un joueur vous a répondu"
+        self.embed.description = f"[[lien]]({message_player.jump_url}) **{player1.name}** a fait son choix"
         self.channel = channel
 
 class ActionReceived(Message):
