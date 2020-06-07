@@ -329,7 +329,7 @@ class GameManager:
                         try:
                             await send_message(await SignatureWinMessage(winner_player, looser_player).direct_message(c_player1))
                         except discord.errors.HTTPException as e:
-                            await send_message(await SignatureNotWellDefined().direct_message(c_player1))
+                            await send_message(await SignatureNotWellDefined().direct_message(c_player2))
                         
                 message_winner = await fight.messageWinner
                 message_winner.embeds[0].description += f"\n\n **Tu as gagné contre {looser_player.name} !** :partying_face:"
