@@ -1033,6 +1033,10 @@ class DataManager():
                     print(f"Forbbidden : On n'a pas envoyé de message au joueur {player.name} parce qu'il n'existe plus (FORBIDDEN)")
                 except discord.errors.HTTPException as e:
                     print(f"Channel Undefined : On n'a pas envoyé de message au joueur {player.name} parce qu'il n'existe plus (FORBIDDEN)")
+                except exceptions.channelUndefined as e:
+                    print(f"Channel Undefined : Le joueur {player.name} n'existe certainement plus.")
+                except Exception as e:
+                    print(f"Exception non connue : Le joueur {player.name} n'existe certainement plus.")
 
         if self.wallOfPFC is not None and self.__old_rank != {}:
             await self.wallOfPFC.onRankSync(self.__old_rank, self.ranking)
