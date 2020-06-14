@@ -12,6 +12,8 @@ from copy import deepcopy
 from PFCBot.messages.message import send_message
 from PFCBot.messages.player import *
 import PFCBot.core.engine
+from PFCBot.core.wall import WallOfPFC
+
 
 TIME_DELTA_PLAYER_ENCOUNTERED = timedelta(seconds=30)
 # -- Entities
@@ -589,6 +591,7 @@ class DataManager():
 
         self.__ranking_message_id = None
         self.__chan_information_id = None
+        self.__wall_of_epicness_id = None
 
         self.__guild = None
         self.__client = None
@@ -687,6 +690,23 @@ class DataManager():
             self.__pillow_knight_role_id = role_id
 
 
+
+    @property
+    def wallOfEpicnessId(self):
+        '''
+            Channel id of the wall of epicness
+        '''
+        if self.wallOfPFC is None:
+            return None
+        
+        channel = self.wallOfPFC.channel
+        if channel is None:
+            return None
+        else:
+            return channel.id
+        
+
+    
     @property
     def guild(self):
         return self.__guild
@@ -879,6 +899,14 @@ class DataManager():
         for player in self.players:
             player.reset_fights()
 
+    def loadWallOfPFC(self, channel_id: int):
+        if channel_id is None:
+            wall_of_epicness_channel = None
+        else:
+            wall_of_epicness_channel = self.client.get_channel(channel_id)
+
+        self.wallOfPFC = WallOfPFC(wall_of_epicness_channel)
+
     # Save and load
     def save_json(self, file):
         print("sauvegarde des données")
@@ -895,6 +923,8 @@ class DataManager():
             data["ranking_message_id"] = self.__ranking_message_id
             data["chan_information_id"] = self.__chan_information_id
             data["pillow_knight_role_id"] = self.__pillow_knight_role_id
+            
+            data["wall_of_epicness_id"] = self.wallOfPFC.channelId
             
             to_write = json.dumps(data)
             f.write(to_write)
@@ -915,6 +945,8 @@ class DataManager():
         self.__ranking_message_id = data.get("ranking_message_id", None)
         self.__chan_information_id = data.get("chan_information_id", None)
         self.__pillow_knight_role_id = data.get("pillow_knight_role_id", None)
+        
+        self.loadWallOfPFC(data.get("wall_of_epicness_id", None))
         
         self.indexLists()
         await self.syncRanking()

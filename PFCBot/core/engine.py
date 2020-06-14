@@ -42,13 +42,11 @@ class GameManager:
     PICKLE_FILE = "data.cornichon"
     DATA_FILE = "data.cornichon.json"
 
-    def __init__(self, wallOfPFC, client=None, guild=None):
+    def __init__(self, client=None, guild=None):
         self.__dataManager = DataManager()
-        self.__dataManager.wallOfPFC = wallOfPFC
         self.__dataManager.client = client
         self.__dataManager.guild = guild
         
-        self.__wallOfPFC = wallOfPFC
         self.__client = client
         self.__guild = guild
     
@@ -65,7 +63,17 @@ class GameManager:
     def guild(self):
         return self.__guild
     
-
+    @guild.setter
+    def guild(self, guild):
+        self.__guild = guild
+        self.__dataManager.guild = guild
+    
+    @property
+    def wallOfPFC(self):
+        return self.dataManager.wallOfPFC
+    @wallOfPFC.setter
+    def wallOfPFC(self, wall_of_pfc):
+        self.dataManager.wallOfPFC = wall_of_pfc
 
     # Commands
     async def register(self, id_joueur, name, channel=None):
@@ -342,7 +350,7 @@ class GameManager:
                 
 
                 # Management of WallOfPFC
-                await self.__wallOfPFC.onWin(fight)
+                await self.wallOfPFC.onWin(fight)
         
         # Et si y'a pas de winner, on envoie un message à l'autre joueur
         else:
@@ -623,7 +631,7 @@ class GameManager:
         # Envoyer un message au player 2
         await send_message(await FallEllyssed(player1, player2).direct_message(c_player2))
         
-        await self.__wallOfPFC.onFallEllyss(player1, player2)
+        await self.wallOfPFC.onFallEllyss(player1, player2)
 
     async def signature(self, id_player, signature, signature_image = "", channel=None):
         # Récupérer le joueur
@@ -716,7 +724,7 @@ class GameManager:
                     print("Le message n'a pas été trouvé !")
                     pass
 
-    async def init_messages(self, id_info_channel):
+    async def init_messages(self):
         await self.update_ranking_message()
 
     # Load and save methods
@@ -726,6 +734,7 @@ class GameManager:
         '''
         if os.path.isfile(self.DATA_FILE):
             await self.dataManager.load_json(self.DATA_FILE, self.client)
+
         
     def save_game(self):
         '''

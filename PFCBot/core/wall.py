@@ -3,10 +3,21 @@ import utils
 from PFCBot.messages.message import Message, send_message
 
 class WallOfPFC:
-    
     def __init__(self, channel):
         self.__channel = channel
         self.__tiers = sorted([5, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100, 200, 300, 400, 500, 600, 700, 800, 900, 1000], reverse=True)
+
+    @property
+    def channel(self):
+        return self.__channel
+
+    @property
+    def channelId(self):
+        if self.__channel is None:
+            return None
+        else:
+            return self.channel.id
+    
 
     async def onWin(self, fight):
         '''
@@ -14,6 +25,9 @@ class WallOfPFC:
             d'une victoire pour faire remonter des infos.
             (ex : un joueur a plus de 10 victoires d'affilé)
         '''
+
+        if self.channel is None:
+            return
 
         # Si le winner a 5 victoires consécutives
         if fight.winner.nbWinCons == 5:
@@ -47,6 +61,9 @@ class WallOfPFC:
         # TODO: Si quelqu'un a perdu plus de X fois contre quelqu'un d'autres
     
     async def onRankSync(self, old_ranking, ranking):
+        if self.channel is None:
+            return
+
         # Est-ce que le player est passé premier ?
         if len(old_ranking) == 0:
             return
@@ -58,6 +75,9 @@ class WallOfPFC:
     
         
     async def onFallEllyss(self, sender, receiver):
+        if self.channel is None:
+            return
+
         # Si le winner a 5 victoires consécutives
         message = Message()
         message.channel = self.__channel
