@@ -13,7 +13,12 @@ class ListPlayers(Message):
         if player.mobile and player_m.is_on_mobile():
             self.embed.description = ""
             for player in players:
-                self.embed.description += ""
+                self.embed.description += f"{player.name}"
+                if player.actif:
+                    self.embed.description += ":v:"
+                else:
+                    self.embed.description += " :sleeping:"
+                self.embed.description += "\n"
             
         else:
             self.embed.description="!show-actifs pour lister les joueurs actifs"

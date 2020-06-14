@@ -13,10 +13,9 @@ from PFCBot.commands.converters import is_name
 from PFCBot.messages.message import send_message
 from PFCBot.messages.player import PlayerNotRegistered
 
-from discord.ext import commands
 from discord import Message
 
-
+from PFCBot.commands.admin import AdminCommands 
 
 
 # TODO: - Système de connexion données - Tester les fonctionnalités
@@ -29,9 +28,9 @@ WALL_OF_EPICNESS = os.getenv('WALL_OF_EPICNESS')
 GUILD_ID = int(os.getenv("GUILD_ID"))
 CHAN_INFORMATION = int(os.getenv("CHAN_INFORMATION"))
 
-print("chan_info: ", CHAN_INFORMATION)
 # Préparation client et variables
 bot = commands.Bot(command_prefix="!")
+bot.add_cog(AdminCommands(bot))
 
 
 
@@ -299,8 +298,41 @@ async def resetFights(ctx):
     gameManager.dataManager.resetFights()
     await ctx.channel.send("Les combats ont bien été reset ! ")
 
-     
+    
+@bot.command(name="set-pillow-knight-role")
+@commands.dm_only()
+@commands.is_owner()
+async def pillowKnightRoleId(ctx, role_id: int):
+    gameManager = system["gameManager"]
+    try:
+        await gameManager.dataManager.setPillowKnightRoleId(role_id)
+        await ctx.channel.send("Le rôle a bien été modifié !")
+    except Exception as e:
+        await ctx.channel.send("Un problème est survenu, le rôle n'a pas été modifié. L'identifiant fourni est sûrement invalide.")
+        print(e)
 
+@bot.command(name="check-pillow-knight-role")
+@commands.dm_only()
+@commands.is_owner()
+async def checkPillowKnightRole(ctx):
+    gameManager = system["gameManager"]
+    pillow_knight_role = gameManager.guild.get_role(gameManager.dataManager.pillowKnightRoleId)
+    if pillow_knight_role is None:
+        await ctx.channel.send("Le rôle n'a pas été trouvé")
+    else:
+        await ctx.channel.send(f"On a bien trouvé le rôle Pillow Knight : {pillow_knight_role.name}")
+
+
+@bot.command(name="identity")
+@commands.is_owner()
+async def identity(ctx, name: is_name):
+    gameManager = system["gameManager"]
+    player = gameManager.dataManager.getPlayerByName(name)
+
+    if player is None:
+        await ctx.channel.send("Le joueur n'a pas été trouvé")
+    else:
+        await ctx.channel.send(f"Le joueur {name} est le suivant : <@{player.idPlayer}>")
 
 @bot.event
 async def on_disconnect():

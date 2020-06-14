@@ -594,7 +594,7 @@ class DataManager():
         self.__client = None
 
         self.__old_rank = None
-
+        self.__pillow_knight_role_id = None
 
         # Counters
         self.__id_counter_fights = 0
@@ -659,6 +659,33 @@ class DataManager():
     def rankingMessage(self, message: discord.message):
         self.__ranking_message_id = message.id
     
+
+    @property
+    def pillowKnightRoleId(self):
+        return self.__pillow_knight_role_id
+    
+    @property
+    def pillowKnightRole(self):
+        if self.__pillow_knight_role_id is None:
+            return None
+        else:
+            return self.guild.get_role(self.__pillow_knight_role_id)
+
+    async def setPillowKnightRoleId(self, role_id: int):
+        if role_id is None:
+            raise Exception("Le rôle n'existe pas !")
+        pillow_knight_role = self.guild.get_role(role_id)
+        if pillow_knight_role is None:
+            raise Exception("Le rôle n'existe pas !")
+
+
+        # Remove le rôle de base s'il existe
+        old_role = self.pillowKnightRole
+        
+        if old_role is not None:
+            await self.replaceRoleFromPlayers(old_role, pillow_knight_role)
+            self.__pillow_knight_role_id = role_id
+
 
     @property
     def guild(self):
@@ -867,6 +894,8 @@ class DataManager():
             data["counter_fights_id"] = self.__id_counter_fights
             data["ranking_message_id"] = self.__ranking_message_id
             data["chan_information_id"] = self.__chan_information_id
+            data["pillow_knight_role_id"] = self.__pillow_knight_role_id
+            
             to_write = json.dumps(data)
             f.write(to_write)
 
@@ -885,11 +914,67 @@ class DataManager():
         self.__id_counter_fights = data.get("counter_fights_id", None)
         self.__ranking_message_id = data.get("ranking_message_id", None)
         self.__chan_information_id = data.get("chan_information_id", None)
+        self.__pillow_knight_role_id = data.get("pillow_knight_role_id", None)
         
         self.indexLists()
         await self.syncRanking()
 
-    # Ranking methods
+    async def removeRoleFromPlayers(self, role: discord.Role):
+        for player in self.players:
+            member = self.guild.get_member(player.idPlayer)
+            if member is None:
+                continue
+            roles = member.roles
+            if role in roles:
+                roles.remove(role)
+                await member.edit(roles=roles)
+
+    async def replaceRoleFromPlayers(self, old_role: discord.Role, new_role: discord.Role):
+        print(f"{old_role} remplacé par {new_role}")
+        for player in self.players:
+            member = self.guild.get_member(player.idPlayer)
+            if member is not None:
+                roles = member.roles
+                modified = False
+                if old_role in roles:
+                    roles.remove(old_role)
+                    if new_role not in roles:
+                        roles.append(new_role)
+                    await member.edit(roles=roles)
+
+
+
+    # Synchronisation Methods
+    async def syncRolePlayers(self):
+        '''
+            Synchronise les roles des joueurs.
+        '''
+        pillow_knight_role = self.pillowKnightRole
+        print(pillow_knight_role)
+        
+        for player in self.players:
+            member = self.guild.get_member(player.idPlayer)
+
+            if member is not None:
+
+                # Pillow Knight Management
+                if pillow_knight_role is not None:
+                    # Pillow knight ?
+                    if player.rank >= 0 and player.rank < 3:
+                        if pillow_knight_role not in member.roles:
+                            await member.add_roles(pillow_knight_role)
+
+                    # Or not Pillow knight
+                    else:
+                        # Récupérer liste de rôles et le modifier
+                        roles = member.roles
+                        if pillow_knight_role in roles:
+                            roles.remove(pillow_knight_role)
+                            await member.edit(roles=roles)
+            
+            # Other roles ?
+            pass
+    
     async def syncRanking(self):
         '''
             Synchronise le classement quand c'est demandé pour mettre à jour la 
@@ -906,9 +991,9 @@ class DataManager():
         if self.__old_rank == None:
             return
         
-        # Envoyer un message à tous les utilisateurs qui ont changé de rang
+        # Réagir en fonction des changements de rank
         for i, player in enumerate(self.__old_rank):
-            # Si le joueur a perdu des places
+            
             if i != player.rank:
                 try:
                     await send_message(await ChangeRank(player, i, player.rank).direct_message_to_player(player, self.client))
@@ -919,4 +1004,6 @@ class DataManager():
 
         if self.wallOfPFC is not None and self.__old_rank != {}:
             await self.wallOfPFC.onRankSync(self.__old_rank, self.ranking)
+        print("Synchronisation des rôles")
+        await self.syncRolePlayers()
         
