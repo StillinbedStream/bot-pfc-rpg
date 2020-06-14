@@ -141,7 +141,7 @@ class BasicCommands(commands.Cog):
 
 
             elif message.content.startswith("!") :
-                await message.channel.send(f"Pour jouer au jeu, il faut m'envoyer un Direct Message (DM) <@{bot.user.id}>")
+                await message.channel.send(f"Pour jouer au jeu, il faut m'envoyer un Direct Message (DM) <@{self.bot.user.id}>")
             
             #await self.bot.process_commands(message)
 
@@ -185,5 +185,5 @@ class BasicCommands(commands.Cog):
                 if fight is None:
                     return
                 
-                if fight.player1.idPlayer == payload.user_id and fight.player1.sentFight is fight:
+                if fight.player1.idPlayer == payload.user_id and fight.player1.sentFight is  fight:
                     await self.game_manager.cancelFight(payload.user_id, self.bot.get_channel(payload.channel_id))
