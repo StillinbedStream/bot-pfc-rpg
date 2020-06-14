@@ -992,7 +992,7 @@ class DataManager():
                 # Pillow Knight Management
                 if pillow_knight_role is not None:
                     # Pillow knight ?
-                    if player.rank >= 0 and player.rank < 3:
+                    if player.rank >= 0 and player.rank < 5:
                         if pillow_knight_role not in member.roles:
                             await member.add_roles(pillow_knight_role)
 
