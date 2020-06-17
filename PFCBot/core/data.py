@@ -598,6 +598,7 @@ class DataManager():
 
         self.__old_rank = None
         self.__pillow_knight_role_id = None
+        self.__populace_role_id = None
 
         # Counters
         self.__id_counter_fights = 0
@@ -687,8 +688,34 @@ class DataManager():
         
         if old_role is not None:
             await self.replaceRoleFromPlayers(old_role, pillow_knight_role)
-            self.__pillow_knight_role_id = role_id
+        self.__pillow_knight_role_id = role_id
 
+    @property
+    def populaceRoleId(self):
+        return self.__populace_role_id
+    
+    @property
+    def populaceRole(self):
+        if self.__populace_role_id is None:
+            return None
+        else:
+            return self.guild.get_role(self.__populace_role_id)
+
+    async def setPopulaceRoleId(self, role_id: int):
+        if role_id is None:
+            raise Exception("Le rôle n'existe pas !")
+        role = self.guild.get_role(role_id)
+        if role is None:
+            raise Exception("Le rôle n'existe pas !")
+
+
+        # Remove le rôle de base s'il existe
+        old_role = self.populaceRole
+        
+        if old_role is not None:
+            await self.replaceRoleFromPlayers(old_role, role)
+        
+        self.__populace_role_id = role_id
 
 
     @property
@@ -923,6 +950,7 @@ class DataManager():
             data["ranking_message_id"] = self.__ranking_message_id
             data["chan_information_id"] = self.__chan_information_id
             data["pillow_knight_role_id"] = self.__pillow_knight_role_id
+            data["populace_role_id"] = self.__populace_role_id
             
             data["wall_of_epicness_id"] = self.wallOfPFC.channelId
             
@@ -945,6 +973,7 @@ class DataManager():
         self.__ranking_message_id = data.get("ranking_message_id", None)
         self.__chan_information_id = data.get("chan_information_id", None)
         self.__pillow_knight_role_id = data.get("pillow_knight_role_id", None)
+        self.__populace_role_id = data.get("populace_role_id", None)
         
         self.loadWallOfPFC(data.get("wall_of_epicness_id", None))
         
@@ -982,27 +1011,40 @@ class DataManager():
             Synchronise les roles des joueurs.
         '''
         pillow_knight_role = self.pillowKnightRole
-        print(pillow_knight_role)
+        populace_role = self.populaceRole
         
         for player in self.players:
             member = self.guild.get_member(player.idPlayer)
 
-            if member is not None:
+            if member is None:
+                continue
 
-                # Pillow Knight Management
-                if pillow_knight_role is not None:
-                    # Pillow knight ?
-                    if player.rank >= 0 and player.rank < 5:
-                        if pillow_knight_role not in member.roles:
-                            await member.add_roles(pillow_knight_role)
+            
+            if player.rank >= 0 and player.rank < 5:
+                # If Pillow Knight (not populace)
+                roles = member.roles
+                to_edit = False
+                if pillow_knight_role is not None and pillow_knight_role not in member.roles:
+                    #await member.add_roles(pillow_knight_role)
+                    roles.append(pillow_knight_role)
+                    to_edit = True
+                if populace_role is not None and populace_role in member.roles:
+                    roles.remove(populace_role)
+                    to_edit = True
+                if to_edit:
+                    await member.edit(roles=roles)
 
-                    # Or not Pillow knight
-                    else:
-                        # Récupérer liste de rôles et le modifier
-                        roles = member.roles
-                        if pillow_knight_role in roles:
-                            roles.remove(pillow_knight_role)
-                            await member.edit(roles=roles)
+            else:
+                # If Populace
+                roles = member.roles
+                to_edit = False
+                if pillow_knight_role is not None and pillow_knight_role in roles:
+                    roles.remove(pillow_knight_role)
+                    to_edit = False
+                if populace_role is not None and populace_role not in roles:
+                    roles.append(populace_role)
+                    to_edit = True
+                await member.edit(roles=roles)       
             
             # Other roles ?
             pass

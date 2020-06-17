@@ -103,9 +103,36 @@ class AdminCommands(commands.Cog):
         if pillow_knight_role is None:
             await ctx.channel.send("Le rôle n'a pas été trouvé")
         else:
-            await ctx.channel.send(f"On a bien trouvé le rôle Pillow Knight : {pillow_knight_role.name}")
+            await ctx.channel.send(f"On a bien trouvé le rôle *Pillow Knight* : **{pillow_knight_role.name}**")
 
 
+
+    
+        
+    # SET POPULACE ROLE
+    @commands.command(name="set-populace-role")
+    @commands.dm_only()
+    @commands.is_owner()
+    async def populaceRoleId(self, ctx, role_id: int):
+        try:
+            await self.game_manager.dataManager.setPopulaceRoleId(role_id)
+            await ctx.channel.send("Le rôle a bien été modifié !")
+            print(self.game_manager.dataManager.populaceRoleId)
+        except Exception as e:
+            await ctx.channel.send("Un problème est survenu, le rôle n'a pas été modifié. L'identifiant fourni est sûrement invalide.")
+            print(e)
+
+
+    # CHECK PILLOW KNIGHT ROLE
+    @commands.command(name="check-populace-role")
+    @commands.dm_only()
+    @commands.is_owner()
+    async def checkPopulaceRole(self, ctx):
+        populace_role = self.game_manager.guild.get_role(self.game_manager.dataManager.populaceRoleId)
+        if populace_role is None:
+            await ctx.channel.send("Le rôle n'a pas été trouvé")
+        else:
+            await ctx.channel.send(f"On a bien trouvé le rôle *Populace* : **{populace_role.name}**")
 
     # SET CHAN INFO
     @commands.command(name="set-chan-info")
