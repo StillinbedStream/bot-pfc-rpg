@@ -13,12 +13,12 @@ class SpellsCommands(commands.Cog):
         self.game_manager = game_manager
 
 
-    @commands.command(name='s0cattack')
+    @commands.command(name='s0cattack', aliases=['sa'])
     @commands.dm_only()
     async def s0command(self, ctx, name_player2: str):
         await self.game_manager.use_spell('s0cattack', ctx.message.author.id, ctx.message.channel, name_player2)
 
-    @commands.command(name="fallellyss")
+    @commands.command(name="fallellyss", aliases=["fl", "hell", "666"])
     @commands.dm_only()
     async def fallelyss(self, ctx, name_player2: is_name):
         await self.game_manager.fallEllyss(ctx.message.author.id, name_player2, ctx.channel)

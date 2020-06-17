@@ -2,7 +2,7 @@ from PFCBot.messages.message import Message
 
 class NotEnoughCoins(Message):
     def __init__(self, player, nb_needed, channel=None):
-        self.content = f"Tu n'as pas assez de coins ! Il te reste {player.coins} papoules, et il t'en faut {nb_needed} !"
+        self.content = f"Le joueur {player.name} n'a pas assez de coins. Il lui reste {player.coins} papoules, et il lui en faut {nb_needed} !"
         self.channel = channel
 
 class AddCoinsMessage(Message):

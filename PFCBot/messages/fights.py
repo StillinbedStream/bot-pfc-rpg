@@ -16,13 +16,19 @@ class Equality(Message):
         self.embed.description = f"[[lien]({message_player.jump_url})] Il y a eu égalité avec **{player2.name}** ! Rejouez."
 
 class WinMessage(Message):
-    def __init__(self, winner, looser, channel=None):
-        self.content = f"[{winner.getNbReceivedFights()}] Vous avez vaincu **{looser.name}** !"
+    def __init__(self, winner, looser, bet=0, channel=None):
+        bet_message = ""
+        if bet > 0:
+            bet_message=f"\nVous avez gagné {bet} :chicken: de l'autre joueur"
+        self.content = f"[{winner.getNbReceivedFights()}] Vous avez vaincu **{looser.name}** !{bet_message}"
         self.channel = channel
 
 class LooseMessage(Message):
-    def __init__(self, winner, looser, channel=None):
-        self.content = f"[{looser.getNbReceivedFights()}] Vous avez perdu contre le joueur {winner.name} !"
+    def __init__(self, winner, looser, bet=0, channel=None):
+        bet_message = ""
+        if bet > 0:
+            bet_message=f"\n{bet} :chicken: de vos papoules donné(s) à l'autre joueur."
+        self.content = f"[{looser.getNbReceivedFights()}] Vous avez perdu contre le joueur {winner.name} !{bet_message}"
         self.channel = channel
 
 class PlayerMadeChoice(Message):
@@ -69,10 +75,17 @@ class FightCanceled(Message):
         self.channel = channel
 
 class SentInvite(Message):
-    def __init__(self, player1, player2, channel=None):
+    def __init__(self, fight, channel=None):
+        player1 = fight.player1
+        player2 = fight.player2
+        
+        bet_message = ""
+        if fight.bet > 0:
+            bet_message = f"{fight.bet} :chicken: en jeu !\n"
+
         self.embed = discord.Embed()
         self.embed.title = f"Duel envoyé à {player2.name}"
-        self.embed.description = f"Vous avez envoyé un duel à {player2.name}.\n \nAjoute une réaction à ce message pour répondre : \n ✊ \:fist\: \n ✋ \:raised_hand\: \n ✌️ \:v\: \n \n Ou envoie moi un DM :\n pierre (p), feuille (f), ou ciseaux (c)"
+        self.embed.description = f"Vous avez envoyé un duel à {player2.name}.\n {bet_message}\nAjoute une réaction à ce message pour répondre : \n ✊ \:fist\: \n ✋ \:raised_hand\: \n ✌️ \:v\: \n \n Ou envoie moi un DM :\n pierre (p), feuille (f), ou ciseaux (c)"
         self.channel = channel
 
 class DoTheChoice(Message):
@@ -81,10 +94,15 @@ class DoTheChoice(Message):
         self.channel = channel
 
 class YouAreAttacked(Message):
-    def __init__(self, player1, player2, channel=None):
+    def __init__(self, fight, channel=None):
+        player1 = fight.player1
+        player2 = fight.player2
+        bet_message = ""
+        if fight.bet > 0:
+            bet_message = f"{fight.bet} :chicken: en jeu !\n"
         self.embed = discord.Embed()
         self.embed.title = f"{player1.name} vous a défié"
-        self.embed.description = f"{player1.name} vous a défié.\n \nPour répondre :\nAjoute une réaction à ce message pour répondre : \n ✊ \:fist\: \n ✋ \:raised_hand\: \n ✌️ \:v\: \n \n Ou envoie moi un DM :\n pierre (p), feuille (f), ou ciseaux (c)"
+        self.embed.description = f"{player1.name} vous a défié.\n{bet_message}\nPour répondre :\nAjoute une réaction à ce message pour répondre : \n ✊ \:fist\: \n ✋ \:raised_hand\: \n ✌️ \:v\: \n \n Ou envoie moi un DM :\n pierre (p), feuille (f), ou ciseaux (c)"
         self.channel = channel
 
 

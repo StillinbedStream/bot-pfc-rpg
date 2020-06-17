@@ -97,7 +97,7 @@ class GameManager:
             message.channel = channel
             await send_message(message)
 
-    async def attack(self, id_joueur1, id_joueur2, provoc, provoc_image, channel=None):
+    async def attack(self, id_joueur1, id_joueur2, provoc="", provoc_image="", bet=0, channel=None):
         '''
         Attaquer un joueur
         '''
@@ -141,17 +141,26 @@ class GameManager:
             if c_player2 is None:
                 return await send_message(BugDiscordCommunication(channel))
         
+
+        # Est-ce que le joueur 1 a assez de papoules
+        if player1.coins < bet:
+            return await send_message(NotEnoughCoins(player1, bet, channel))
+        
+        if player2.coins < bet:
+            return await send_message(NotEnoughCoins(player2, bet, channel))
+        
         # Est-ce que le joueur 1 a déjà attaqué quelqu'un
         if player1.sentFight is None:
             fight = self.dataManager.createFight(player1, player2)
+            fight.bet = bet
 
-            sentMessagePlayer1 = await send_message(await SentInvite(player1, player2).direct_message(c_player1))
+            sentMessagePlayer1 = await send_message(await SentInvite(fight).direct_message(c_player1))
             fight.messagePlayer1 = sentMessagePlayer1 
 
             if provoc != "":
                 await send_message(await Provoc(player1, provoc, provoc_image).direct_message(c_player2))
             
-            sentMessagePlayer2 = await send_message(await YouAreAttacked(player1, player2).direct_message(c_player2))
+            sentMessagePlayer2 = await send_message(await YouAreAttacked(fight).direct_message(c_player2))
             fight.messagePlayer2 = sentMessagePlayer2
 
             player1.addPlayerEncountered(player2)
@@ -305,7 +314,8 @@ class GameManager:
                 winner_player.nbWin += 1
                 looser_player.nbLoose += 1
                 
-                winner_player.coins += 1
+                winner_player.coins += 1 + fight.bet
+                looser_player.coins -= fight.bet
 
                 # Gérer les win et loose consécutives
                 if winner_player.nbLooseCons > 0:
@@ -339,11 +349,16 @@ class GameManager:
                         except discord.errors.HTTPException as e:
                             await send_message(await SignatureNotWellDefined().direct_message(c_player2))
                         
+                bet_message_win = ""
+                bet_message_loose = ""
+                if fight.bet > 0:
+                    bet_message_win=f"\nVous avez volé {fight.bet} :chicken: à l'autre joueur"
+                    bet_message_loose=f"\nVous vous êtes fait volé {fight.bet} :chicken: par l'autre joueur"
                 message_winner = await fight.messageWinner
-                message_winner.embeds[0].description += f"\n\n **Tu as gagné contre {looser_player.name} !** :partying_face:"
+                message_winner.embeds[0].description += f"\n\n **Tu as gagné contre {looser_player.name} !** :partying_face: {bet_message_win}"
 
                 message_looser = await fight.messageLooser
-                message_looser.embeds[0].description += f"\n\n **Tu as perdu contre {winner_player.name} !** :poop: "
+                message_looser.embeds[0].description += f"\n\n **Tu as perdu contre {winner_player.name} !** :poop: {bet_message_loose}"
 
                 await message_winner.edit(embed=message_winner.embeds[0])
                 await message_looser.edit(embed=message_looser.embeds[0])

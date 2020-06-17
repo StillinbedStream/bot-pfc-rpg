@@ -34,12 +34,12 @@ class BasicCommands(commands.Cog):
         if isinstance(error, commands.BadArgument):
             await ctx.send(error)
 
-    @commands.command(name='attack')
+    @commands.command(name='attack', aliases=['a'])
     @commands.dm_only()
     async def attack(self, ctx, name_player2: is_name = "", provoc: str = "", provoc_image: str=""):
         message = ctx.message
         if name_player2 == "":
-            await self.game_manager.attackRandomPlayer(message.author.id, message.channel)
+            await self.game_manager.attackRandomPlayer(message.author.id, channel=message.channel)
             return
         
         # Attaque
@@ -47,7 +47,7 @@ class BasicCommands(commands.Cog):
         if player2 == None:
             await message.channel.send(f"Le joueur {name_player2} n'existe pas, comme ton charisme ! https://gifimage.net/wp-content/uploads/2017/08/popopo-gif-1.gif")
         else:
-            await self.game_manager.attack(message.author.id, player2.idPlayer, provoc, provoc_image, message.channel)
+            await self.game_manager.attack(message.author.id, player2.idPlayer, provoc, provoc_image, channel=message.channel)
     
 
 
