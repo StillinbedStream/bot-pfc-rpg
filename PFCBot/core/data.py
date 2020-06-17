@@ -360,6 +360,8 @@ class Fight(Entity):
         self.__id_message_player1 = None
         self.__id_message_player2 = None
 
+        self.__bet = 0
+
         if player1 is not None:
             player1.sentFight = self
         if player2 is not None:
@@ -434,6 +436,14 @@ class Fight(Entity):
     def actionPlayer2(self, action_player2):
         self.__action_player2 = action_player2
 
+    @property
+    def bet(self):
+        return self.__bet
+    
+    @bet.setter
+    def bet(self, bet):
+        self.__bet = bet
+    
     # cancel
     @property
     def cancel(self):
@@ -1040,11 +1050,12 @@ class DataManager():
                 to_edit = False
                 if pillow_knight_role is not None and pillow_knight_role in roles:
                     roles.remove(pillow_knight_role)
-                    to_edit = False
+                    to_edit = True
                 if populace_role is not None and populace_role not in roles:
                     roles.append(populace_role)
                     to_edit = True
-                await member.edit(roles=roles)       
+                if to_edit:
+                    await member.edit(roles=roles)       
             
             # Other roles ?
             pass
