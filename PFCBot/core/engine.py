@@ -353,7 +353,7 @@ class GameManager:
                 bet_message_loose = ""
                 if fight.bet > 0:
                     bet_message_win=f"\nVous avez volé {fight.bet} :chicken: à l'autre joueur"
-                    bet_message_loose=f"\nVous vous êtes fait volé {fight.bet} :chicken: par l'autre joueur"
+                    bet_message_loose=f"\nVous vous êtes fait voler {fight.bet} :chicken: par l'autre joueur"
                 message_winner = await fight.messageWinner
                 message_winner.embeds[0].description += f"\n\n **Tu as gagné contre {looser_player.name} !** :partying_face: {bet_message_win}"
 
