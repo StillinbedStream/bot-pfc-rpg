@@ -185,7 +185,7 @@ class GameManager:
         player2 = choice(players)
 
         # On crée le fight
-        await self.attack(id_player, player2.idPlayer, "", "", channel)
+        await self.attack(id_player, player2.idPlayer, "", "", channel=channel)
 
     async def mystats(self, id_player, channel=None):
         # Récupérer le joueur
