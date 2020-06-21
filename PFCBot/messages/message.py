@@ -4,6 +4,9 @@ import exceptions
 
 # La fonction pour envoyer des messages
 async def send_message(message, channel=None):
+    if message.player is not None and message.player.actif is False:
+        return None
+    
     if message.channel is None:
         if channel is None:
             raise exceptions.channelUndefined()
@@ -32,11 +35,13 @@ class Message(discord.Message):
     __content = ""
     __channel = None
     __embed = None
+    __player = None
 
     def __init__(self):
         self.__content = ""
         self.__channel = None
         self.__embed = None
+        self.__player = None
     
     @property
     def content(self):
@@ -61,10 +66,18 @@ class Message(discord.Message):
     @embed.setter
     def embed(self, embed):
         self.__embed = embed
+
+    @property
+    def player(self):
+        return self.__player
     
     async def direct_message_to_player(self, player, client):
-        print(f"id_player ici : {player.idPlayer}")
+        '''
+            Méthode chainable qui permet de configurer le joueur auquel on 
+            souhaite envoyer un message.
+        '''
         c_player = client.get_user(player.idPlayer)
+        self.__player = player
         if c_player is None:
             print("On a un c_player None")
             return self
@@ -81,4 +94,8 @@ class Message(discord.Message):
         if user.dm_channel is None:
             print("ON a encore un problème ! ")
         self.channel = user.dm_channel
+        return self
+
+    async def setPlayer(self, player):
+        self.__player = player
         return self
